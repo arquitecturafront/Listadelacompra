@@ -319,7 +319,6 @@ input[type="file"] { display:none; }
       <div class="total-amount" id="total-amount">0,00 €</div>
     </div>
     <div class="total-actions">
-      <a class="mail-btn" id="mail-list-btn" href="#" title="Enviar lista por email">✉️</a>
       <button class="finish-btn" id="finish-btn">Finalizar</button>
     </div>
   </div>
@@ -486,7 +485,7 @@ input[type="file"] { display:none; }
       <div id="url-list-preview" style="background:var(--surface3);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:16px;max-height:200px;overflow-y:auto;font-size:.85rem;line-height:1.6;color:var(--text-muted)"></div>
       <p style="font-size:.78rem;color:var(--text-dim);margin-bottom:14px">¿Quieres cargar esta lista?</p>
       <div class="btn-row">
-        <button class="btn btn-secondary" onclick="closeModal('modal-url-list')">Cancelar</button>
+        <button class="btn btn-secondary" id="url-list-cancel-btn">Cancelar</button>
         <button class="btn btn-primary" id="url-list-confirm-btn">Cargar lista</button>
       </div>
     </div>
@@ -1057,17 +1056,15 @@ document.getElementById('finish-btn').addEventListener('click', async function()
   renderShopping();
 });
 
-// ── EMAIL BUTTON ──
-document.getElementById('mail-list-btn').addEventListener('click', async function(e) {
-  e.preventDefault();
-  var list     = await dbGet('lists', currentListId);
-  var allItems = await dbIdx('listItems', 'listId', currentListId);
+// ── EMAIL desde Listas ──
+async function exportListById(lid) {
+  var list     = await dbGet('lists', lid);
+  var allItems = await dbIdx('listItems', 'listId', lid);
   var allProds = await dbAll('products');
   var allCats  = await dbAll('categories');
   var pending  = allItems.filter(function(i){ return !i.bought; });
   var bought   = allItems.filter(function(i){ return  i.bought; });
 
-  // Group pending by category
   var groups = {};
   pending.forEach(function(item) {
     var prod    = allProds.find(function(p){ return p.id === item.productId; });
@@ -1108,7 +1105,9 @@ document.getElementById('mail-list-btn').addEventListener('click', async functio
 
   var subject = 'Lista compra: ' + (list ? list.name : '') + ' - ' + new Date().toLocaleDateString('es-ES');
   window.location.href = 'mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
-});
+}
+
+// ── EMAIL BUTTON (shopping, eliminado - ahora en pantalla Listas) ──
 
 // ══════════════════════════════════════════════
 //  LISTS SCREEN
@@ -1121,14 +1120,86 @@ async function renderLists() {
   for (var i = 0; i < lists.length; i++) {
     var list  = lists[i];
     var items = await dbIdx('listItems', 'listId', list.id);
-    var row   = document.createElement('div');
+    var allProds = await dbAll('products');
+    var allCats  = await dbAll('categories');
+    var pending = items.filter(function(i){ return !i.bought; });
+    var bought  = items.filter(function(i){ return  i.bought; });
+
+    var wrapper = document.createElement('div');
+    wrapper.style.cssText = 'border-bottom:1px solid var(--border)';
+
+    // Cabecera de lista
+    var row = document.createElement('div');
     row.className = 'list-item-row';
-    row.innerHTML = '<div class="list-item-info"><div class="list-item-name">' + list.name + '</div><div class="list-item-meta">' + items.length + ' artículos · ' + items.filter(function(i){ return i.bought; }).length + ' comprados</div></div>' +
-      (list.id === currentListId ? '<span class="list-active-badge">Activa</span>' : '') +
-      '<div class="db-item-actions"><div class="db-action-btn edit" data-use="' + list.id + '">Usar</div><div class="db-action-btn delete" data-del="' + list.id + '">✕</div></div>';
-    row.querySelector('[data-use]').addEventListener('click', (function(id){ return function(e){ e.stopPropagation(); activateList(id); }; })(list.id));
+    row.style.cursor = 'pointer';
+    var isActive = list.id === currentListId;
+    row.innerHTML = '<div class="list-item-info">' +
+      '<div class="list-item-name">' + list.name + '</div>' +
+      '<div class="list-item-meta">' + pending.length + ' pendientes · ' + bought.length + ' comprados</div>' +
+      '</div>' +
+      (isActive ? '<span class="list-active-badge">Activa</span>' : '') +
+      '<div class="db-item-actions">' +
+        (!isActive ? '<div class="db-action-btn edit" data-use="' + list.id + '">Usar</div>' : '') +
+        '<div class="db-action-btn" style="color:var(--accent);border-color:var(--accent-dim)" data-export="' + list.id + '">✉️</div>' +
+        '<div class="db-action-btn delete" data-del="' + list.id + '">✕</div>' +
+      '</div>';
+
+    // Expandir/colapsar items al pulsar en la fila
+    var itemsDiv = document.createElement('div');
+    itemsDiv.style.cssText = 'display:none;background:var(--bg);padding:0 16px 10px';
+    var arrow = document.createElement('span');
+    arrow.textContent = ' ›';
+    arrow.style.cssText = 'color:var(--accent);transition:transform .2s;display:inline-block';
+    row.querySelector('.list-item-name').appendChild(arrow);
+
+    row.addEventListener('click', function(wrapRow, wrapDiv, wrapArrow) {
+      return function(e) {
+        if (e.target.closest('[data-use],[data-del],[data-export]')) return;
+        var open = wrapDiv.style.display !== 'none';
+        wrapDiv.style.display = open ? 'none' : 'block';
+        wrapArrow.style.transform = open ? '' : 'rotate(90deg)';
+      };
+    }(row, itemsDiv, arrow));
+
+    // Contenido de items agrupados por categoría
+    if (items.length === 0) {
+      itemsDiv.innerHTML = '<div style="color:var(--text-dim);font-size:.8rem;padding:8px 0">Lista vacía</div>';
+    } else {
+      var groups = {};
+      pending.forEach(function(item) {
+        var prod = allProds.find(function(p){ return p.id === item.productId; });
+        var cat  = allCats.find(function(c){ return c.id === (prod ? prod.categoryId : -1); });
+        var key  = cat ? cat.emoji + ' ' + cat.name : 'Otros';
+        if (!groups[key]) groups[key] = [];
+        groups[key].push({item:item, prod:prod});
+      });
+      var html = '';
+      Object.keys(groups).forEach(function(catName) {
+        html += '<div style="font-size:.68rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;padding:8px 0 4px;font-weight:600">' + catName + '</div>';
+        groups[catName].forEach(function(e) {
+          var qty = (e.item.qty > 1 || e.item.unit) ? ' <span style="color:var(--accent)">x' + e.item.qty + (e.item.unit?' '+e.item.unit:'') + '</span>' : '';
+          html += '<div style="padding:4px 0;font-size:.85rem;color:var(--text-muted)">' + (e.prod ? (e.prod.emoji||'🛒')+' '+e.prod.name : '?') + qty + '</div>';
+        });
+      });
+      if (bought.length) {
+        html += '<div style="font-size:.68rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em;padding:8px 0 4px;font-weight:600">✓ Comprados</div>';
+        bought.forEach(function(item) {
+          var prod = allProds.find(function(p){ return p.id === item.productId; });
+          html += '<div style="padding:4px 0;font-size:.85rem;color:var(--text-dim);text-decoration:line-through">' + (prod ? (prod.emoji||'🛒')+' '+prod.name : '?') + '</div>';
+        });
+      }
+      itemsDiv.innerHTML = html;
+    }
+
+    if (!isActive) {
+      row.querySelector('[data-use]').addEventListener('click', (function(id){ return function(e){ e.stopPropagation(); activateList(id); }; })(list.id));
+    }
     row.querySelector('[data-del]').addEventListener('click', (function(id){ return function(e){ e.stopPropagation(); deleteList(id); }; })(list.id));
-    cont.appendChild(row);
+    row.querySelector('[data-export]').addEventListener('click', (function(lid){ return function(e){ e.stopPropagation(); exportListById(lid); }; })(list.id));
+
+    wrapper.appendChild(row);
+    wrapper.appendChild(itemsDiv);
+    cont.appendChild(wrapper);
   }
 }
 
@@ -1532,6 +1603,11 @@ async function loadUrlList(json) {
   renderManage();
   renderLists();
 }
+
+document.getElementById('url-list-cancel-btn').addEventListener('click', function() {
+  pendingUrlList = null;
+  closeModal('modal-url-list');
+});
 
 document.getElementById('url-list-confirm-btn').addEventListener('click', async function() {
   closeModal('modal-url-list');
