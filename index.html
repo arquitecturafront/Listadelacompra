@@ -1429,10 +1429,23 @@ function showToast(msg, type) {
 var pendingUrlList = null;
 
 function parseUrlList() {
+  // Buscar en hash (#lista=) o en query string (?lista=)
+  var raw = null;
   var hash = window.location.hash;
-  if (!hash || hash.indexOf('lista=') === -1) return null;
+  if (hash && hash.indexOf('lista=') !== -1) {
+    raw = hash.split('lista=')[1];
+  } else {
+    var search = window.location.search;
+    if (search && search.indexOf('lista=') !== -1) {
+      raw = new URLSearchParams(search).get('lista');
+    }
+  }
+  if (!raw) return null;
   try {
-    var b64 = hash.split('lista=')[1];
+    // Aceptar Base64 URL-safe (- y _) además del estándar (+ y /)
+    var b64 = raw.replace(/-/g, '+').replace(/_/g, '/');
+    // Añadir padding si falta
+    while (b64.length % 4) b64 += '=';
     // decode base64 with proper UTF-8 handling
     var binary = atob(b64);
     var bytes = new Uint8Array(binary.length);
