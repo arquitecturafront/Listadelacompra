@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test JSONBin</title>
+<style>
+  body { font-family: monospace; background: #1a1a1a; color: #f0f0f0; padding: 20px; }
+  button { background: #c8a96e; color: #000; border: none; padding: 12px 24px; font-size: 1rem; cursor: pointer; border-radius: 8px; margin: 8px 4px; }
+  button:disabled { opacity: .5; }
+  #log { background: #0f0f0f; border: 1px solid #333; border-radius: 8px; padding: 16px; margin-top: 16px; white-space: pre-wrap; font-size: .85rem; line-height: 1.6; min-height: 200px; max-height: 600px; overflow-y: auto; }
+  .ok  { color: #5c9c6e; }
+  .err { color: #c45c5c; }
+  .inf { color: #6eb8c8; }
+  .warn { color: #c8a96e; }
+</style>
+</head>
+<body>
+<h2>🧪 Test JSONBin API</h2>
+
+<button id="btn-post" onclick="testPost()">📤 POST (crear bin)</button>
+<button id="btn-get"  onclick="testGet()"  disabled>📥 GET (leer bin)</button>
+<button id="btn-clear" onclick="clearLog()">🗑️ Limpiar log</button>
+
+<div id="log">Pulsa "POST" para empezar el test...\n</div>
+
+<script>
+var JSONBIN_KEY = '$2a$10$D0DD/UuAfE9YbPlhC./YNuSlMtzIhOkftqKxAOw9.9NfFpHVVnZpe';
+var JSONBIN_URL = 'https://api.jsonbin.io/v3/b';
+var lastBinId   = null;
+
+var TEST_JSON = {
+  type: 'list-full',
+  version: 1,
+  test: true,
+  list: { name: 'Lista de prueba', createdAt: Date.now() },
+  categories: [{ id: 1, name: 'Frutas y Verduras', emoji: '🥦', color: '#6ea86e' }],
+  products:   [{ id: 1, name: 'Tomates', emoji: '🍅', categoryId: 1, notes: '' }],
+  items:      [{ id: 1, listId: 1, productId: 1, qty: 2, unit: 'kg', bought: false }]
+};
+
+function log(msg, cls) {
+  var el = document.getElementById('log');
+  var line = document.createElement('div');
+  if (cls) line.className = cls;
+  line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
+}
+
+function clearLog() {
+  document.getElementById('log').innerHTML = '';
+}
+
+async function testPost() {
+  document.getElementById('btn-post').disabled = true;
+  log('── POST ' + JSONBIN_URL, 'inf');
+  log('Headers: Content-Type, X-Master-Key, X-Bin-Name, X-Bin-Private', 'inf');
+  log('Body size: ' + JSON.stringify(TEST_JSON).length + ' bytes', 'inf');
+
+  try {
+    var resp = await fetch(JSONBIN_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'X-Master-Key':  JSONBIN_KEY,
+        'X-Bin-Name':    'test-lista-' + Date.now(),
+        'X-Bin-Private': 'true'
+      },
+      body: JSON.stringify(TEST_JSON)
+    });
+
+    log('Response status: ' + resp.status + ' ' + resp.statusText, resp.ok ? 'ok' : 'err');
+
+    // Mostrar todos los headers de respuesta
+    log('Response headers:', 'inf');
+    resp.headers.forEach(function(val, key) {
+      log('  ' + key + ': ' + val, 'inf');
+    });
+
+    var text = await resp.text();
+    log('Response body: ' + text, resp.ok ? 'ok' : 'err');
+
+    if (resp.ok) {
+      try {
+        var data = JSON.parse(text);
+        lastBinId = data.metadata && data.metadata.id;
+        log('✅ Bin creado con ID: ' + lastBinId, 'ok');
+        log('URL app: https://arquitecturafront.github.io/Listadelacompra/index.html?uuid=' + lastBinId, 'ok');
+        document.getElementById('btn-get').disabled = false;
+      } catch(e) {
+        log('⚠️ No se pudo parsear la respuesta como JSON: ' + e.message, 'warn');
+      }
+    }
+
+  } catch(e) {
+    log('❌ Network/CORS error: ' + e.message, 'err');
+    log('Tipo de error: ' + e.name, 'err');
+    log('Posible causa: CORS bloqueado o sin conexión', 'warn');
+  }
+
+  document.getElementById('btn-post').disabled = false;
+}
+
+async function testGet() {
+  if (!lastBinId) { log('⚠️ Primero haz el POST', 'warn'); return; }
+  document.getElementById('btn-get').disabled = true;
+  var url = JSONBIN_URL + '/' + lastBinId + '/latest';
+  log('── GET ' + url, 'inf');
+
+  try {
+    var resp = await fetch(url, {
+      headers: { 'X-Master-Key': JSONBIN_KEY }
+    });
+
+    log('Response status: ' + resp.status + ' ' + resp.statusText, resp.ok ? 'ok' : 'err');
+
+    resp.headers.forEach(function(val, key) {
+      log('  ' + key + ': ' + val, 'inf');
+    });
+
+    var text = await resp.text();
+    log('Response body: ' + text.slice(0, 500) + (text.length > 500 ? '...' : ''), resp.ok ? 'ok' : 'err');
+
+    if (resp.ok) {
+      log('✅ GET correcto — el flujo completo funciona', 'ok');
+    }
+
+  } catch(e) {
+    log('❌ Network/CORS error: ' + e.message, 'err');
+  }
+
+  document.getElementById('btn-get').disabled = false;
+}
+</script>
+</body>
+</html>
