@@ -227,6 +227,26 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); min-hei
 .voice-btn.listening { background:var(--danger); border-color:var(--danger); color:white; animation:pulse 1s infinite; }
 @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(196,92,92,.4)} 50%{box-shadow:0 0 0 8px rgba(196,92,92,0)} }
 
+/* VOICE AI */
+.voice-ai-btn { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg, var(--accent), var(--accent-dim)); border:1px solid var(--accent); display:flex; align-items:center; justify-content:center; color:white; cursor:pointer; font-size:1.1rem; transition:all .2s; box-shadow:0 2px 8px rgba(106,156,198,.3); }
+.voice-ai-btn:hover { transform:scale(1.05); box-shadow:0 4px 12px rgba(106,156,198,.4); }
+.voice-ai-btn:active { transform:scale(.95); }
+.recording-btn { width:120px; height:120px; border-radius:50%; font-size:2.5rem; border:4px solid var(--border); background:var(--surface3); cursor:pointer; transition:all .3s; margin:24px auto; display:flex; align-items:center; justify-content:center; }
+.recording-btn.recording { background:var(--danger); border-color:var(--danger); color:white; animation:recordPulse 1.5s infinite; }
+@keyframes recordPulse { 0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(196,92,92,.7)} 50%{transform:scale(1.05);box-shadow:0 0 0 20px rgba(196,92,92,0)} }
+.recording-timer { text-align:center; font-size:1.8rem; font-weight:600; font-variant-numeric:tabular-nums; color:var(--text); margin:16px 0; }
+.recording-status { text-align:center; font-size:.85rem; color:var(--text-muted); margin-bottom:20px; }
+.voice-preview-transcription { background:var(--surface3); padding:16px; border-radius:var(--radius); font-size:.85rem; line-height:1.6; color:var(--text); margin-bottom:20px; border-left:3px solid var(--accent); font-style:italic; }
+.voice-preview-table { max-height:340px; overflow-y:auto; border:1px solid var(--border); border-radius:var(--radius); }
+.voice-preview-row { display:flex; align-items:center; gap:12px; padding:12px 14px; border-bottom:1px solid var(--border); }
+.voice-preview-row:last-child { border-bottom:none; }
+.voice-preview-emoji { font-size:1.8rem; flex-shrink:0; }
+.voice-preview-info { flex:1; min-width:0; }
+.voice-preview-name { font-weight:500; font-size:.9rem; color:var(--text); }
+.voice-preview-cat { font-size:.72rem; color:var(--text-muted); margin-top:2px; }
+.voice-preview-qty { font-size:.8rem; color:var(--accent); font-weight:500; white-space:nowrap; }
+.voice-preview-count { text-align:center; font-size:.75rem; color:var(--text-muted); padding:12px; font-weight:500; }
+
 /* TOAST */
 .toast-container { position:fixed; bottom:calc(var(--nav-h) + 12px); left:50%; transform:translateX(-50%); z-index:1000; pointer-events:none; width:calc(100% - 32px); max-width:416px; }
 .toast { background:var(--surface3); border:1px solid var(--border); color:var(--text); border-radius:var(--radius); padding:12px 16px; font-size:.85rem; box-shadow:0 4px 24px rgba(0,0,0,.4); animation:toastIn .3s cubic-bezier(.32,.72,0,1) forwards; margin-top:8px; }
@@ -248,7 +268,7 @@ input[type="file"] { display:none; }
   <div class="app-header">
     <h1>La Compra</h1>
     <div class="header-actions">
-      <div class="icon-btn voice-btn" id="voice-btn-manage">🎤</div>
+      <div class="voice-ai-btn" id="voice-ai-btn" title="Dictar lista completa con IA">🎤</div>
       <div class="icon-btn" id="btn-config" title="Configurar lista">⚙️</div>
     </div>
   </div>
@@ -548,6 +568,66 @@ input[type="file"] { display:none; }
         </div>
       </div>
       <button class="btn btn-secondary" onclick="closeModal('modal-config')" style="width:100%;margin-top:14px">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Groq Settings -->
+<div class="overlay" id="modal-groq-settings">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🤖 <span>Configuración de Groq AI</span></div>
+    <div class="modal-body">
+      <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:16px;line-height:1.5">
+        Para usar la funcionalidad de voz con IA necesitas una API key de Groq.
+        <a href="https://console.groq.com/keys" target="_blank" style="color:var(--accent);text-decoration:underline">Obtén tu key gratis aquí</a>
+      </p>
+      <div class="form-group">
+        <label class="form-label">API Key de Groq</label>
+        <input type="password" class="form-input" id="groq-api-key-input" placeholder="gsk_...">
+        <p style="font-size:.7rem;color:var(--text-dim);margin-top:4px">Tu API key se guarda localmente en tu navegador</p>
+      </div>
+      <div class="btn-row" style="margin-top:16px">
+        <button class="btn btn-secondary" onclick="closeModal('modal-groq-settings')">Cancelar</button>
+        <button class="btn btn-primary" id="groq-save-key-btn">Guardar</button>
+      </div>
+      <button class="btn btn-secondary" id="groq-delete-key-btn" style="width:100%;margin-top:8px;font-size:.75rem">Eliminar API key</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Voice Recording -->
+<div class="overlay" id="modal-voice-record">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🎤 <span>Dictar lista completa</span></div>
+    <div class="modal-body">
+      <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:20px;line-height:1.5;text-align:center">
+        Pulsa grabar y dime todo lo que necesitas. La IA organizará tu lista automáticamente.
+      </p>
+      <div class="recording-status" id="voice-record-status">Pulsa el botón para empezar</div>
+      <div class="recording-timer" id="voice-record-timer">0:00</div>
+      <button class="recording-btn" id="voice-record-btn">🎤</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-voice-record')" style="width:100%;margin-top:16px">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Voice Preview -->
+<div class="overlay" id="modal-voice-preview">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🤖 <span>Lista generada por IA</span></div>
+    <div class="modal-body">
+      <div class="form-label">Has dictado:</div>
+      <div class="voice-preview-transcription" id="voice-preview-transcription"></div>
+      <div class="voice-preview-count" id="voice-preview-count"></div>
+      <div class="voice-preview-table" id="voice-preview-table"></div>
+      <div class="btn-row" style="margin-top:16px">
+        <button class="btn btn-secondary" id="voice-preview-discard-btn">Descartar</button>
+        <button class="btn btn-primary" id="voice-preview-new-list-btn">Nueva lista</button>
+      </div>
+      <button class="btn btn-primary" id="voice-preview-current-list-btn" style="width:100%;margin-top:8px">Añadir a lista actual</button>
     </div>
   </div>
 </div>
@@ -1594,7 +1674,15 @@ var App = (function() {
     manageTab:        'cats',
     pendingUrlList:   null,
     recognition:      null,
-    isListening:      false
+    isListening:      false,
+    voiceAI: {
+      isRecording: false,
+      mediaRecorder: null,
+      audioChunks: [],
+      startTime: null,
+      pendingJSON: null,
+      pendingTranscription: null
+    }
   };
 
   // ── Helpers ──────────────────────────────────────────────────────
@@ -1978,6 +2066,386 @@ var App = (function() {
     state.recognition.start();
   }
 
+  // ── Voz IA (Groq) ────────────────────────────────────────────────
+  function openGroqSettings() {
+    var existingKey = localStorage.getItem('groq_api_key');
+    if (existingKey) {
+      document.getElementById('groq-api-key-input').value = existingKey.substring(0, 10) + '...';
+    } else {
+      document.getElementById('groq-api-key-input').value = '';
+    }
+    UI.openModal('modal-groq-settings');
+  }
+
+  function saveGroqApiKey() {
+    var key = document.getElementById('groq-api-key-input').value.trim();
+    if (!key) {
+      UI.toast('Escribe una API key', 'error');
+      return;
+    }
+    if (!key.startsWith('gsk_')) {
+      UI.toast('La API key de Groq debe empezar con "gsk_"', 'error');
+      return;
+    }
+    localStorage.setItem('groq_api_key', key);
+    UI.toast('API key guardada ✓', 'success');
+    UI.closeModal('modal-groq-settings');
+  }
+
+  function deleteGroqApiKey() {
+    if (!confirm('¿Eliminar la API key guardada?')) return;
+    localStorage.removeItem('groq_api_key');
+    document.getElementById('groq-api-key-input').value = '';
+    UI.toast('API key eliminada', '');
+  }
+
+  async function startVoiceAI() {
+    var apiKey = localStorage.getItem('groq_api_key');
+    if (!apiKey) {
+      UI.toast('Configura tu API key de Groq primero', 'error');
+      setTimeout(openGroqSettings, 500);
+      return;
+    }
+    UI.openModal('modal-voice-record');
+    document.getElementById('voice-record-status').textContent = 'Pulsa el botón para empezar';
+    document.getElementById('voice-record-btn').textContent = '🎤';
+    document.getElementById('voice-record-timer').textContent = '0:00';
+    document.getElementById('voice-record-btn').classList.remove('recording');
+  }
+
+  async function toggleRecording() {
+    if (state.voiceAI.isRecording) {
+      stopRecording();
+    } else {
+      startRecordingAudio();
+    }
+  }
+
+  async function startRecordingAudio() {
+    try {
+      var stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      state.voiceAI.audioChunks = [];
+      state.voiceAI.mediaRecorder = new MediaRecorder(stream);
+
+      state.voiceAI.mediaRecorder.ondataavailable = function(e) {
+        state.voiceAI.audioChunks.push(e.data);
+      };
+
+      state.voiceAI.mediaRecorder.onstop = async function() {
+        var audioBlob = new Blob(state.voiceAI.audioChunks, { type: 'audio/webm' });
+        stream.getTracks().forEach(function(t) { t.stop(); });
+
+        var duration = Date.now() - state.voiceAI.startTime;
+        if (duration < 1000) {
+          UI.toast('Grabación demasiado corta. Habla al menos 1 segundo', 'error');
+          return;
+        }
+
+        await processAudio(audioBlob);
+      };
+
+      state.voiceAI.mediaRecorder.start();
+      state.voiceAI.isRecording = true;
+      state.voiceAI.startTime = Date.now();
+
+      document.getElementById('voice-record-btn').textContent = '⏹️';
+      document.getElementById('voice-record-btn').classList.add('recording');
+      document.getElementById('voice-record-status').textContent = 'Grabando... Habla ahora';
+      updateRecordingTimer();
+
+    } catch(err) {
+      UI.toast('No se pudo acceder al micrófono: ' + err.message, 'error');
+      console.error('Error micrófono:', err);
+    }
+  }
+
+  function stopRecording() {
+    if (state.voiceAI.mediaRecorder && state.voiceAI.isRecording) {
+      state.voiceAI.mediaRecorder.stop();
+      state.voiceAI.isRecording = false;
+
+      document.getElementById('voice-record-btn').textContent = '🎤';
+      document.getElementById('voice-record-btn').classList.remove('recording');
+      document.getElementById('voice-record-status').textContent = 'Procesando...';
+    }
+  }
+
+  function updateRecordingTimer() {
+    if (!state.voiceAI.isRecording) return;
+
+    var elapsed = Math.floor((Date.now() - state.voiceAI.startTime) / 1000);
+    var minutes = Math.floor(elapsed / 60);
+    var seconds = elapsed % 60;
+    var timeStr = minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+
+    document.getElementById('voice-record-timer').textContent = timeStr;
+
+    if (elapsed >= 300) {
+      stopRecording();
+      UI.toast('Límite de 5 minutos alcanzado', '');
+      return;
+    }
+
+    setTimeout(updateRecordingTimer, 1000);
+  }
+
+  async function transcribeAudio(audioBlob) {
+    var apiKey = localStorage.getItem('groq_api_key');
+
+    var formData = new FormData();
+    formData.append('file', audioBlob, 'recording.webm');
+    formData.append('model', 'whisper-large-v3');
+    formData.append('language', 'es');
+    formData.append('response_format', 'json');
+    formData.append('temperature', '0');
+
+    var response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + apiKey
+      },
+      body: formData
+    });
+
+    if (!response.ok) {
+      var errorText = await response.text();
+      console.error('Error Whisper API:', errorText);
+
+      if (response.status === 401) {
+        throw new Error('API key inválida. Verifica tu configuración.');
+      }
+      if (response.status === 429) {
+        throw new Error('Límite de uso alcanzado. Espera unos minutos.');
+      }
+      throw new Error('Error al transcribir: ' + response.status);
+    }
+
+    var data = await response.json();
+    return data.text;
+  }
+
+  async function categorizeProducts(transcription) {
+    var apiKey = localStorage.getItem('groq_api_key');
+    var categories = await DB.all('categories');
+
+    var categoriesList = categories.map(function(c, i) {
+      return (i + 1) + '. ' + c.name + ' ' + c.emoji + ' (ID: ' + c.id + ')';
+    }).join('\n');
+
+    var systemPrompt = 'Eres un asistente experto en organizar listas de compra. Analizas texto dictado y extraes productos con sus cantidades, asignándolos a categorías predefinidas. Respondes SOLO con JSON válido, sin explicaciones.';
+
+    var userPrompt = 'El usuario ha dictado esta lista de compra:\n\n"' + transcription + '"\n\nCATEGORÍAS DISPONIBLES:\n' + categoriesList + '\n\nINSTRUCCIONES:\n1. Extrae TODOS los productos mencionados en el texto\n2. Para cada producto detectado:\n   - Asigna la categoría más apropiada (usa el ID numérico de la categoría)\n   - Si NO encaja en ninguna categoría específica, usa la categoría "Otros"\n   - Detecta cantidades y unidades si se mencionan (ej: "2 kilos de tomates" → qty:2, unit:"kg")\n   - Infiere un emoji apropiado para el producto\n   - Detecta notas adicionales (ej: "pan integral" → notes:"integral")\n\n3. Genera un JSON en este formato EXACTO:\n\n{\n  "products": [\n    {\n      "name": "Manzanas",\n      "emoji": "🍎",\n      "categoryId": 1,\n      "notes": ""\n    }\n  ],\n  "items": [\n    {\n      "productName": "Manzanas",\n      "qty": 1,\n      "unit": "",\n      "notes": ""\n    }\n  ]\n}\n\nREGLAS IMPORTANTES:\n- Usa los IDs de categoría EXACTOS de la lista (números)\n- productName en items debe coincidir EXACTAMENTE con name en products\n- Si no se menciona cantidad, usa qty: 1\n- NO inventes productos que no se mencionaron\n- Responde SOLO con el JSON, SIN formato markdown, SIN explicaciones';
+
+    var response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + apiKey
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ],
+        temperature: 0.3,
+        max_tokens: 4000
+      })
+    });
+
+    if (!response.ok) {
+      var errorText = await response.text();
+      console.error('Error Chat API:', errorText);
+
+      if (response.status === 401) {
+        throw new Error('API key inválida. Verifica tu configuración.');
+      }
+      if (response.status === 429) {
+        throw new Error('Límite de uso alcanzado. Espera unos minutos.');
+      }
+      throw new Error('Error al categorizar: ' + response.status);
+    }
+
+    var data = await response.json();
+    var jsonText = data.choices[0].message.content;
+
+    jsonText = jsonText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+
+    var result = JSON.parse(jsonText);
+
+    if (!result.products || result.products.length === 0) {
+      throw new Error('No se detectaron productos en la grabación');
+    }
+
+    return result;
+  }
+
+  async function processAudio(audioBlob) {
+    UI.closeModal('modal-voice-record');
+    UI.toast('Transcribiendo audio...', '');
+
+    try {
+      var transcription = await transcribeAudio(audioBlob);
+      console.log('Transcripción:', transcription);
+
+      if (!transcription || transcription.trim().length < 3) {
+        throw new Error('No se detectó voz en la grabación');
+      }
+
+      UI.toast('Analizando productos...', '');
+
+      var result = await categorizeProducts(transcription);
+      console.log('Resultado categorización:', result);
+
+      state.voiceAI.pendingJSON = result;
+      state.voiceAI.pendingTranscription = transcription;
+
+      await showVoicePreview(result, transcription);
+
+    } catch(error) {
+      console.error('Error al procesar audio:', error);
+      UI.toast('Error: ' + error.message, 'error');
+    }
+  }
+
+  async function showVoicePreview(result, transcription) {
+    var categories = await DB.all('categories');
+
+    var transBox = document.getElementById('voice-preview-transcription');
+    transBox.textContent = '"' + transcription + '"';
+
+    var table = document.getElementById('voice-preview-table');
+    table.innerHTML = '';
+
+    result.products.forEach(function(prod) {
+      var cat = categories.find(function(c) { return c.id === prod.categoryId; });
+      var item = result.items.find(function(i) { return i.productName === prod.name; });
+
+      var row = document.createElement('div');
+      row.className = 'voice-preview-row';
+
+      var qtyText = (item && item.qty ? item.qty : 1) + ' ' + (item && item.unit ? item.unit : '');
+
+      row.innerHTML =
+        '<span class="voice-preview-emoji">' + prod.emoji + '</span>' +
+        '<div class="voice-preview-info">' +
+          '<div class="voice-preview-name">' + prod.name + '</div>' +
+          '<div class="voice-preview-cat">' + (cat ? cat.name : '?') + '</div>' +
+        '</div>' +
+        '<div class="voice-preview-qty">' + qtyText.trim() + '</div>';
+
+      table.appendChild(row);
+    });
+
+    document.getElementById('voice-preview-count').textContent = result.products.length + ' productos detectados';
+
+    UI.openModal('modal-voice-preview');
+  }
+
+  async function importToCurrentList() {
+    var result = state.voiceAI.pendingJSON;
+    if (!result) return;
+
+    UI.closeModal('modal-voice-preview');
+    UI.toast('Añadiendo productos a la lista...', '');
+
+    try {
+      for (var i = 0; i < result.products.length; i++) {
+        var prod = result.products[i];
+        var item = result.items.find(function(it) { return it.productName === prod.name; });
+
+        var productId = await Store.findOrCreateProduct(
+          prod.name,
+          prod.emoji,
+          null,
+          prod.notes || ''
+        );
+
+        var product = await DB.get('products', productId);
+        if (product.categoryId !== prod.categoryId) {
+          product.categoryId = prod.categoryId;
+          await DB.put('products', product);
+        }
+
+        await Store.addToList(
+          state.currentListId,
+          productId,
+          item ? item.qty : 1,
+          item ? item.unit : '',
+          item ? item.notes : ''
+        );
+      }
+
+      state.voiceAI.pendingJSON = null;
+      state.voiceAI.pendingTranscription = null;
+
+      UI.toast(result.products.length + ' productos añadidos ✓', 'success');
+      renderManage();
+
+    } catch(error) {
+      console.error('Error al importar:', error);
+      UI.toast('Error: ' + error.message, 'error');
+    }
+  }
+
+  async function importToNewList() {
+    var result = state.voiceAI.pendingJSON;
+    if (!result) return;
+
+    UI.closeModal('modal-voice-preview');
+    UI.toast('Creando lista nueva...', '');
+
+    try {
+      var listName = 'Lista de voz - ' + new Date().toLocaleDateString('es-ES');
+      var newListId = await Store.createList(listName);
+
+      for (var i = 0; i < result.products.length; i++) {
+        var prod = result.products[i];
+        var item = result.items.find(function(it) { return it.productName === prod.name; });
+
+        var productId = await Store.findOrCreateProduct(
+          prod.name,
+          prod.emoji,
+          null,
+          prod.notes || ''
+        );
+
+        var product = await DB.get('products', productId);
+        if (product.categoryId !== prod.categoryId) {
+          product.categoryId = prod.categoryId;
+          await DB.put('products', product);
+        }
+
+        await Store.addToList(
+          newListId,
+          productId,
+          item ? item.qty : 1,
+          item ? item.unit : '',
+          item ? item.notes : ''
+        );
+      }
+
+      state.currentListId = newListId;
+
+      state.voiceAI.pendingJSON = null;
+      state.voiceAI.pendingTranscription = null;
+
+      UI.toast('Lista "' + listName + '" creada con ' + result.products.length + ' productos ✓', 'success');
+      renderManage();
+
+    } catch(error) {
+      console.error('Error al crear lista:', error);
+      UI.toast('Error: ' + error.message, 'error');
+    }
+  }
+
+  function discardVoiceImport() {
+    state.voiceAI.pendingJSON = null;
+    state.voiceAI.pendingTranscription = null;
+    UI.closeModal('modal-voice-preview');
+    UI.toast('Lista descartada', '');
+  }
+
   // ── Binding de eventos ───────────────────────────────────────────
   function bindEvents() {
 
@@ -2239,6 +2707,15 @@ var App = (function() {
     document.querySelectorAll('.overlay').forEach(function(o) {
       o.addEventListener('click', function(e){ if (e.target === o) UI.closeModal(o.id); });
     });
+
+    // Voz IA (Groq)
+    document.getElementById('voice-ai-btn').addEventListener('click', startVoiceAI);
+    document.getElementById('groq-save-key-btn').addEventListener('click', saveGroqApiKey);
+    document.getElementById('groq-delete-key-btn').addEventListener('click', deleteGroqApiKey);
+    document.getElementById('voice-record-btn').addEventListener('click', toggleRecording);
+    document.getElementById('voice-preview-current-list-btn').addEventListener('click', importToCurrentList);
+    document.getElementById('voice-preview-new-list-btn').addEventListener('click', importToNewList);
+    document.getElementById('voice-preview-discard-btn').addEventListener('click', discardVoiceImport);
 
     // Voz
     document.querySelectorAll('.voice-btn').forEach(function(b){ b.addEventListener('click', toggleVoice); });
