@@ -249,11 +249,11 @@ input[type="file"] { display:none; }
     <h1>La Compra</h1>
     <div class="header-actions">
       <div class="icon-btn voice-btn" id="voice-btn-manage">🎤</div>
-      <div class="icon-btn" id="btn-new-list-quick">＋</div>
+      <div class="icon-btn" id="btn-config" title="Configurar lista">⚙️</div>
     </div>
   </div>
   <div class="current-list-bar">
-    <div class="list-selector" id="list-selector">
+    <div class="list-selector" id="list-selector" style="cursor:pointer">
       <span class="list-selector-name" id="list-selector-label">Cargando...</span>
       <span class="list-selector-arrow">▾</span>
     </div>
@@ -309,6 +309,13 @@ input[type="file"] { display:none; }
       <div class="icon-btn voice-btn" id="voice-btn-shop">🎤</div>
     </div>
   </div>
+  <div class="current-list-bar">
+    <div class="list-selector" id="shop-list-selector" style="cursor:pointer">
+      <span class="list-selector-name" id="shop-list-selector-label">Cargando...</span>
+      <span class="list-selector-arrow">▾</span>
+    </div>
+    <div class="icon-btn" id="btn-new-list-shop" title="Nueva lista" style="width:28px;height:28px;font-size:.85rem">＋</div>
+  </div>
   <div class="tab-bar">
     <div class="tab-item active" id="tab-pending" onclick="switchShopTab('pending')">Pendientes <span class="tab-count" id="count-pending">0</span></div>
     <div class="tab-item" id="tab-bought" onclick="switchShopTab('bought')">Comprados <span class="tab-count" id="count-bought">0</span></div>
@@ -319,22 +326,12 @@ input[type="file"] { display:none; }
       <div class="total-amount" id="total-amount">0,00 €</div>
     </div>
     <div class="total-actions">
+      <a class="mail-btn" id="mail-list-btn" href="#" title="Enviar lista por email">✉️</a>
       <button class="finish-btn" id="finish-btn">Finalizar</button>
     </div>
   </div>
   <div class="sort-bar" id="sort-bar"></div>
   <div class="shopping-list" id="shopping-list"></div>
-</div>
-
-<!-- ═══ SCREEN: LISTS ═══ -->
-<div id="screen-lists" class="screen">
-  <div class="app-header">
-    <h1>Mis Listas</h1>
-    <div class="header-actions">
-      <div class="icon-btn" id="btn-new-list">＋</div>
-    </div>
-  </div>
-  <div id="lists-container"></div>
 </div>
 
 <!-- ═══ SCREEN: DB ═══ -->
@@ -351,9 +348,6 @@ input[type="file"] { display:none; }
   </div>
   <div class="nav-item" id="nav-shopping" onclick="navigate('shopping')">
     <span class="nav-icon">✓</span><span>Comprar</span>
-  </div>
-  <div class="nav-item" id="nav-lists" onclick="navigate('lists')">
-    <span class="nav-icon">📋</span><span>Listas</span>
   </div>
   <div class="nav-item" id="nav-db" onclick="navigate('db')">
     <span class="nav-icon">⚙️</span><span>Gestión</span>
@@ -426,13 +420,46 @@ input[type="file"] { display:none; }
   </div>
 </div>
 
+<!-- MODAL: Editar producto (desde Gestión) -->
+<div class="overlay" id="modal-edit-product">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Editar <span>producto</span></div>
+    <div class="modal-body">
+      <div class="product-detail-img" id="edit-prod-img">
+        <span id="edit-prod-emoji-display">🛒</span>
+        <div class="img-upload-btn" id="edit-prod-img-btn">📷 Foto</div>
+        <input type="file" id="edit-prod-img-file" accept="image/*" capture="environment">
+      </div>
+      <div class="img-note">La imagen se comprime automáticamente (~30KB)</div>
+      <div class="form-group">
+        <label class="form-label">Emoji (si no hay foto)</label>
+        <input type="text" class="form-input" id="edit-prod-emoji" maxlength="2" placeholder="🛒">
+      </div>
+      <div class="form-group"><label class="form-label">Nombre</label><input type="text" class="form-input" id="edit-prod-name"></div>
+      <div class="form-group"><label class="form-label">Notas</label><input type="text" class="form-input" id="edit-prod-notes" placeholder="Marca, peso..."></div>
+      <div class="form-group"><label class="form-label">Categoría</label><select class="form-input" id="edit-prod-cat" style="cursor:pointer"></select></div>
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="closeModal('modal-edit-product')">Cancelar</button>
+        <button class="btn btn-primary" id="save-edit-prod-btn">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: Category -->
 <div class="overlay" id="modal-cat">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div class="modal-title" id="modal-cat-title">Nueva <span>categoría</span></div>
     <div class="modal-body">
-      <div class="form-group"><label class="form-label">Emoji</label><input type="text" class="form-input" id="cat-emoji-input" placeholder="🛒" maxlength="2"></div>
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
+        <div id="cat-emoji-preview" style="width:64px;height:64px;border-radius:var(--radius);background:var(--surface3);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:2rem;cursor:pointer;transition:border-color .15s" title="Pulsa para cambiar emoji">🛒</div>
+        <div style="flex:1">
+          <div class="form-label" style="margin-bottom:6px">Emoji</div>
+          <input type="text" class="form-input" id="cat-emoji-input" placeholder="🛒" maxlength="2">
+        </div>
+      </div>
       <div class="form-group"><label class="form-label">Nombre</label><input type="text" class="form-input" id="cat-name-input" placeholder="Nombre"></div>
       <div class="form-group"><label class="form-label">Descripción</label><input type="text" class="form-input" id="cat-sub-input" placeholder="Ej: frescos..."></div>
       <div class="form-group"><label class="form-label">Color</label><input type="color" class="form-input" id="cat-color-input" value="#c8a96e" style="height:44px;padding:4px"></div>
@@ -463,12 +490,11 @@ input[type="file"] { display:none; }
 <div class="overlay" id="modal-import-opts">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
-    <div class="modal-title">Importar <span id="import-type-label">datos</span></div>
+    <div class="modal-title">Importar <span id="import-type-label">catálogo</span></div>
     <div class="modal-body">
-      <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:16px">¿Cómo quieres importar?</p>
+      <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:16px">Se reemplazarán las categorías y productos actuales.</p>
       <div style="display:flex;flex-direction:column;gap:10px">
-        <button class="btn btn-secondary" id="import-merge-btn">Fusionar con datos existentes</button>
-        <button class="btn btn-danger" id="import-replace-btn">Reemplazar datos existentes</button>
+        <button class="btn btn-primary" id="import-confirm-btn">📂 Elegir archivo JSON</button>
         <button class="btn btn-secondary" onclick="closeModal('modal-import-opts')">Cancelar</button>
       </div>
     </div>
@@ -476,11 +502,12 @@ input[type="file"] { display:none; }
 </div>
 
 
+
 <!-- MODAL: Lista recibida desde URL -->
 <div class="overlay" id="modal-url-list">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
-    <div class="modal-title">Lista recibida <span>de Claude</span></div>
+    <div class="modal-title" id="url-list-modal-title">Lista recibida <span>de Claude</span></div>
     <div class="modal-body">
       <div id="url-list-preview" style="background:var(--surface3);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:16px;max-height:200px;overflow-y:auto;font-size:.85rem;line-height:1.6;color:var(--text-muted)"></div>
       <p style="font-size:.78rem;color:var(--text-dim);margin-bottom:14px">¿Quieres cargar esta lista?</p>
@@ -492,1146 +519,1784 @@ input[type="file"] { display:none; }
   </div>
 </div>
 
+<!-- MODAL: Configurar lista -->
+<div class="overlay" id="modal-config">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📋 <span>Gestionar lista</span></div>
+    <div class="modal-body" style="padding-top:8px">
+      <div class="form-group">
+        <label class="form-label">Lista activa</label>
+        <select class="form-input" id="config-list-select" style="cursor:pointer"></select>
+      </div>
+      <div id="config-lists-container" style="margin-bottom:12px"></div>
+      <button class="btn btn-secondary" id="btn-new-list-modal" style="width:100%;margin-bottom:8px">＋ Nueva lista</button>
+      <div id="modal-new-list-form" style="display:none;margin-bottom:12px">
+        <input type="text" class="form-input" id="config-new-list-name" placeholder="Nombre de la lista..." style="margin-bottom:8px">
+        <div class="btn-row">
+          <button class="btn btn-secondary" id="modal-new-list-cancel">Cancelar</button>
+          <button class="btn btn-primary" id="config-new-list-btn">Crear</button>
+        </div>
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
+        <label class="form-label">Compartir lista activa</label>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+          <button class="btn btn-secondary" id="config-export-btn">💾 Descargar JSON</button>
+          <button class="btn btn-secondary" id="config-link-btn">🔗 Copiar enlace</button>
+          <button class="btn btn-secondary" id="config-email-btn">✉️ Enviar por email</button>
+          <button class="btn btn-secondary" id="config-whatsapp-btn">📲 Enviar por WhatsApp</button>
+        </div>
+      </div>
+      <button class="btn btn-secondary" onclick="closeModal('modal-config')" style="width:100%;margin-top:14px">Cerrar</button>
+    </div>
+  </div>
+</div>
+
 <input type="file" id="import-file-input" accept=".json">
 <div class="toast-container" id="toast-container"></div>
 
 <script>
-// ══════════════════════════════════════════════
-//  INDEXEDDB
-// ══════════════════════════════════════════════
-let db;
-function openDB() {
-  return new Promise(function(res, rej) {
-    var req = indexedDB.open('ListaCompra3', 1);
-    req.onupgradeneeded = function(e) {
-      var d = e.target.result;
-      if (!d.objectStoreNames.contains('categories')) d.createObjectStore('categories', {keyPath:'id', autoIncrement:true});
-      if (!d.objectStoreNames.contains('products')) {
-        var ps = d.createObjectStore('products', {keyPath:'id', autoIncrement:true});
-        ps.createIndex('categoryId', 'categoryId');
+'use strict';
+
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║  CAPA 1 — PERSISTENCIA (IndexedDB)                              ║
+// ║  Solo habla con la BD. Sin referencias al DOM.                  ║
+// ║  Para migrar a otro storage: solo cambiar este bloque.          ║
+// ╚══════════════════════════════════════════════════════════════════╝
+var DB = (function() {
+  var db;
+
+  function open() {
+    return new Promise(function(res, rej) {
+      var req = indexedDB.open('ListaCompra3', 1);
+      req.onupgradeneeded = function(e) {
+        var d = e.target.result;
+        if (!d.objectStoreNames.contains('categories'))
+          d.createObjectStore('categories', {keyPath:'id', autoIncrement:true});
+        if (!d.objectStoreNames.contains('products')) {
+          var ps = d.createObjectStore('products', {keyPath:'id', autoIncrement:true});
+          ps.createIndex('categoryId', 'categoryId');
+        }
+        if (!d.objectStoreNames.contains('lists'))
+          d.createObjectStore('lists', {keyPath:'id', autoIncrement:true});
+        if (!d.objectStoreNames.contains('listItems')) {
+          var li = d.createObjectStore('listItems', {keyPath:'id', autoIncrement:true});
+          li.createIndex('listId', 'listId');
+        }
+      };
+      req.onsuccess = function(e) { db = e.target.result; res(db); };
+      req.onerror   = rej;
+    });
+  }
+
+  function get(store, key)          { return new Promise(function(r,j){ var q=db.transaction(store,'readonly').objectStore(store).get(key); q.onsuccess=function(){r(q.result)}; q.onerror=j; }); }
+  function all(store)               { return new Promise(function(r,j){ var q=db.transaction(store,'readonly').objectStore(store).getAll(); q.onsuccess=function(){r(q.result)}; q.onerror=j; }); }
+  function byIndex(store, idx, val) { return new Promise(function(r,j){ var q=db.transaction(store,'readonly').objectStore(store).index(idx).getAll(val); q.onsuccess=function(){r(q.result)}; q.onerror=j; }); }
+  function put(store, data)         { return new Promise(function(r,j){ var q=db.transaction(store,'readwrite').objectStore(store).put(data); q.onsuccess=function(){r(q.result)}; q.onerror=j; }); }
+  function add(store, data)         { return new Promise(function(r,j){ var q=db.transaction(store,'readwrite').objectStore(store).add(data); q.onsuccess=function(){r(q.result)}; q.onerror=j; }); }
+  function del(store, key)          { return new Promise(function(r,j){ var q=db.transaction(store,'readwrite').objectStore(store).delete(key); q.onsuccess=function(){r()}; q.onerror=j; }); }
+  function clear(store)             { return new Promise(function(r,j){ var q=db.transaction(store,'readwrite').objectStore(store).clear(); q.onsuccess=function(){r()}; q.onerror=j; }); }
+
+  return { open:open, get:get, all:all, byIndex:byIndex, put:put, add:add, del:del, clear:clear };
+})();
+
+
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║  CAPA 2 — STORE (lógica de negocio / fuente de la verdad)       ║
+// ║  Todas las operaciones sobre datos pasan por aquí.              ║
+// ║  Sin referencias al DOM. Retorna datos puros.                   ║
+// ║  Para migrar a React: usar como custom hooks o context.         ║
+// ╚══════════════════════════════════════════════════════════════════╝
+var Store = (function() {
+
+  // ── Seed data ────────────────────────────────────────────────────
+  var CATS = [
+    {name:'Frutas y Verduras',   emoji:'🥦', sub:'Fresco del mercado',      color:'#6ea86e'},
+    {name:'Conservas y Despensa',emoji:'🥫', sub:'Latas, salsas, aceites',  color:'#c8a96e'},
+    {name:'Congelados',          emoji:'🧊', sub:'Pescado, carne, verdura', color:'#6e9ac8'},
+    {name:'Huevos y Lácteos',    emoji:'🥛', sub:'Frescos y refrigerados',  color:'#c8c06e'},
+    {name:'Charcutería',         emoji:'🥩', sub:'Fiambres y embutidos',    color:'#c87a6e'},
+    {name:'Carnes y Pescados',   emoji:'🐟', sub:'Fresco y carnicería',     color:'#c88e6e'},
+    {name:'Bebidas',             emoji:'🥤', sub:'Refrescos, zumos, agua',  color:'#6eb8c8'},
+    {name:'Cereales y Snacks',   emoji:'🥣', sub:'Desayuno y aperitivos',   color:'#a86ec8'},
+    {name:'Panadería',           emoji:'🍞', sub:'Pan, picos, pita',        color:'#c8a06e'},
+    {name:'Yogures y Frescos',   emoji:'🫙', sub:'Yogures, mantequilla',    color:'#6ec8a0'},
+    {name:'Limpieza Hogar',      emoji:'🧹', sub:'Hogar y utensilios',      color:'#6e8dc8'},
+    {name:'Higiene Personal',    emoji:'🧴', sub:'Ducha, cuidado personal', color:'#c86eaa'},
+    {name:'Otros',               emoji:'🛍️', sub:'Varios',                  color:'#888'}
+  ];
+  var PRODS = [
+    ['Frutas y Verduras','Manzanas','🍎',''],['Frutas y Verduras','Tomates','🍅',''],
+    ['Frutas y Verduras','Aguacates','🥑',''],['Frutas y Verduras','Zanahorias','🥕',''],
+    ['Frutas y Verduras','Calabacín','🥒','2-3 unidades'],['Frutas y Verduras','Puerro','🌿',''],
+    ['Conservas y Despensa','Tomate rallado','🍅',''],['Conservas y Despensa','Vinagre balsámico','🫙','Tamaño pequeño'],
+    ['Conservas y Despensa','Pimientos asados','🫑','En conserva'],['Conservas y Despensa','Hummus','🫘',''],
+    ['Congelados','Atún congelado','🐟',''],['Congelados','Lomos de salmón','🐠','2 paquetes'],
+    ['Huevos y Lácteos','Huevos','🥚','36 unidades'],['Huevos y Lácteos','Queso Parmesano','🧀','Entero'],
+    ['Huevos y Lácteos','Leche semidesnatada','🥛',''],['Huevos y Lácteos','Leche de almendra','🌰','2 uds, sin azúcar'],
+    ['Charcutería','Anacardos','🥜',''],['Charcutería','Pistachos','🫘',''],
+    ['Charcutería','Jamón York 96%','🥩',''],['Charcutería','Chorizo de pavo','🍖',''],
+    ['Charcutería','Bacon','🥓',''],['Charcutería','Fuet','🌭',''],
+    ['Charcutería','Jamón serrano','🍖',''],['Charcutería','Mortadela de pavo','🥩',''],
+    ['Charcutería','Salchichas','🌭',''],['Carnes y Pescados','Carne','🥩','Pendiente decidir tipo'],
+    ['Bebidas','Coca-Cola','🥤',''],['Bebidas','Tónica','🫧',''],['Bebidas','Zumitos rosa niños','🧃',''],
+    ['Cereales y Snacks','Muesli sin azúcar','🥣',''],['Cereales y Snacks','Galletas de chocolate','🍪','Para niños'],
+    ['Panadería','Pan pita','🫓',''],['Panadería','Picos','🥖',''],['Panadería','Panes para bocadillo','🍞','6 unidades'],
+    ['Yogures y Frescos','Yogur griego ligero','🫙','Formato grande'],['Yogures y Frescos','Yogur de fresa','🍓',''],
+    ['Yogures y Frescos','Yogur de coco','🥥',''],['Yogures y Frescos','Mantequilla','🧈',''],
+    ['Limpieza Hogar','Papel higiénico','🧻',''],['Limpieza Hogar','Papel de cocina','🧻',''],
+    ['Limpieza Hogar','Limpiador WC','🚽',''],['Limpieza Hogar','Bolsas de basura moradas','🗑️',''],
+    ['Higiene Personal','Gel de ducha','🧴','']
+  ];
+
+  async function seed() {
+    var existing = await DB.all('categories');
+    if (existing.length > 0) return;
+    var catIds = {};
+    for (var i = 0; i < CATS.length; i++) {
+      var id = await DB.add('categories', CATS[i]);
+      catIds[CATS[i].name] = id;
+    }
+    for (var j = 0; j < PRODS.length; j++) {
+      var p = PRODS[j];
+      await DB.add('products', {name:p[1], emoji:p[2], notes:p[3], categoryId:catIds[p[0]], image:null});
+    }
+    var lid = await DB.add('lists', {name:'Lista semanal', createdAt:Date.now()});
+    var prods = await DB.all('products');
+    for (var k = 0; k < PRODS.length; k++) {
+      var pr = PRODS[k];
+      var found = prods.find(function(x){ return x.name === pr[1] && x.categoryId === catIds[pr[0]]; });
+      if (found) await DB.add('listItems', {listId:lid, productId:found.id, qty:1, unit:'', notes:found.notes, bought:false, cost:null, addedAt:Date.now()});
+    }
+  }
+
+  // ── Queries ───────────────────────────────────────────────────────
+  // Devuelven siempre datos puros, nunca tocan el DOM
+
+  async function getAllData() {
+    var cats  = await DB.all('categories');
+    var prods = await DB.all('products');
+    var lists = await DB.all('lists');
+    return { cats:cats, prods:prods, lists:lists };
+  }
+
+  async function getListContext(listId) {
+    var cats     = await DB.all('categories');
+    var prods    = await DB.all('products');
+    var items    = listId ? await DB.byIndex('listItems', 'listId', listId) : [];
+    // Deduplicar productos por nombre — fuente de la verdad única
+    // Si hay dos productos con el mismo nombre, se usa el primero encontrado
+    // y los listItems del duplicado se reasignan al canónico
+    var canonical = {};
+    prods.forEach(function(p) {
+      var key = p.name.toLowerCase().trim();
+      if (!canonical[key]) {
+        canonical[key] = p;
       }
-      if (!d.objectStoreNames.contains('lists')) d.createObjectStore('lists', {keyPath:'id', autoIncrement:true});
-      if (!d.objectStoreNames.contains('listItems')) {
-        var li = d.createObjectStore('listItems', {keyPath:'id', autoIncrement:true});
-        li.createIndex('listId', 'listId');
+    });
+    // Items apuntando a duplicados → reasignar al canónico en memoria
+    items = items.map(function(item) {
+      var prod = prods.find(function(p){ return p.id === item.productId; });
+      if (!prod) return item;
+      var key = prod.name.toLowerCase().trim();
+      var canon = canonical[key];
+      if (canon && canon.id !== item.productId) {
+        return Object.assign({}, item, {productId: canon.id});
       }
+      return item;
+    });
+    return { cats:cats, prods:Object.values(canonical), items:items };
+  }
+
+  // Buscar o crear producto por nombre (garantiza unicidad)
+  async function findOrCreateProduct(name, emoji, catName, notes) {
+    var allProds = await DB.all('products');
+    var allCats  = await DB.all('categories');
+    var key      = name.toLowerCase().trim();
+    var existing = allProds.find(function(p){ return p.name.toLowerCase().trim() === key; });
+    if (existing) return existing.id;
+    var cat   = allCats.find(function(c){ return c.name === catName; });
+    var catId = cat ? cat.id : (allCats.length ? allCats[allCats.length-1].id : 1);
+    return await DB.add('products', {name:name, emoji:emoji||'🛒', notes:notes||'', categoryId:catId, image:null});
+  }
+
+  // ── Acciones de lista ─────────────────────────────────────────────
+  async function addToList(listId, productId, qty, unit, notes) {
+    var existing = await DB.byIndex('listItems', 'listId', listId);
+    var already  = existing.find(function(i){ return i.productId === productId && !i.bought; });
+    if (already) {
+      await DB.put('listItems', Object.assign({}, already, {qty: (already.qty||1) + (qty||1), unit:unit||already.unit, notes:notes||already.notes}));
+      return 'updated';
+    }
+    await DB.add('listItems', {listId:listId, productId:productId, qty:qty||1, unit:unit||'', notes:notes||'', bought:false, cost:null, addedAt:Date.now()});
+    return 'added';
+  }
+
+  async function updateListItem(item, qty, unit, notes) {
+    await DB.put('listItems', Object.assign({}, item, {qty:qty, unit:unit, notes:notes}));
+  }
+
+  async function markBought(itemId, cost) {
+    var item = await DB.get('listItems', itemId);
+    if (!item) return;
+    await DB.put('listItems', Object.assign({}, item, {bought:true, cost:cost, boughtAt:Date.now()}));
+  }
+
+  async function unmarkBought(itemId) {
+    var item = await DB.get('listItems', itemId);
+    if (!item) return;
+    await DB.put('listItems', Object.assign({}, item, {bought:false, cost:null}));
+  }
+
+  async function finishShopping(listId) {
+    var items  = await DB.byIndex('listItems', 'listId', listId);
+    var bought = items.filter(function(i){ return i.bought; });
+    var total  = bought.reduce(function(s,i){ return s+(parseFloat(i.cost)||0); }, 0);
+    for (var i = 0; i < bought.length; i++) await DB.del('listItems', bought[i].id);
+    return total;
+  }
+
+  async function createList(name) {
+    return await DB.add('lists', {name:name, createdAt:Date.now()});
+  }
+
+  async function deleteList(listId) {
+    var items = await DB.byIndex('listItems', 'listId', listId);
+    for (var i = 0; i < items.length; i++) await DB.del('listItems', items[i].id);
+    await DB.del('lists', listId);
+  }
+
+  async function clearList(listId) {
+    var items = await DB.byIndex('listItems', 'listId', listId);
+    for (var i = 0; i < items.length; i++) await DB.del('listItems', items[i].id);
+  }
+
+  // ── Acciones de producto/categoría ───────────────────────────────
+  async function saveProduct(product) { await DB.put('products', product); }
+
+  async function deleteProduct(id) {
+    await DB.del('products', id);
+    var items = await DB.all('listItems');
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].productId === id) await DB.del('listItems', items[i].id);
+    }
+  }
+
+  async function saveCategory(cat) {
+    if (cat.id) {
+      var old = await DB.get('categories', cat.id);
+      await DB.put('categories', cat);
+      // Si cambia el nombre, propagar a búsquedas (los productos siguen por id, no por nombre)
+      // No hay que tocar productos — están relacionados por categoryId, no por nombre
+    } else {
+      await DB.add('categories', cat);
+    }
+  }
+
+  async function deleteCategory(id) {
+    var prods = await DB.all('products');
+    for (var i = 0; i < prods.length; i++) {
+      if (prods[i].categoryId === id) await DB.del('products', prods[i].id);
+    }
+    await DB.del('categories', id);
+  }
+
+  // ── Importar lista desde Claude (URL) ────────────────────────────
+  async function importClaudeList(json) {
+    var listName = json.list ? json.list.name : 'Lista de Claude';
+    var listId   = await createList(listName);
+    for (var i = 0; i < json.items.length; i++) {
+      var item      = json.items[i];
+      var productId = await findOrCreateProduct(item._name, item._emoji, item._catName, item.notes);
+      await addToList(listId, productId, item.qty||1, item.unit||'', item.notes||'');
+    }
+    history.replaceState(null, '', window.location.pathname);
+    return { listId:listId, listName:listName };
+  }
+
+  // ── Export / Import JSON ──────────────────────────────────────────
+  // Exportar lista con su catálogo completo — para compartir con otra persona
+  async function exportListData(listId) {
+    var cats     = await DB.all('categories');
+    var prods    = await DB.all('products');
+    var list     = await DB.get('lists', listId);
+    var allItems = await DB.byIndex('listItems', 'listId', listId);
+    var items    = allItems.map(function(item) {
+      var prod = prods.find(function(p){ return p.id === item.productId; });
+      var cat  = prod ? cats.find(function(c){ return c.id === prod.categoryId; }) : null;
+      return Object.assign({}, item, {
+        _name:    prod ? prod.name  : '',
+        _catName: cat  ? cat.name   : '',
+        _emoji:   prod ? prod.emoji : '🛒'
+      });
+    });
+    return {
+      type: 'list-full', version: 1,
+      categories: cats,
+      products:   prods,
+      list:       list,
+      items:      items
     };
-    req.onsuccess = function(e) { db = e.target.result; res(db); };
-    req.onerror = rej;
-  });
-}
-function dbGet(s,k) { return new Promise(function(r,j){var req=db.transaction(s,'readonly').objectStore(s).get(k);req.onsuccess=function(){r(req.result)};req.onerror=j}); }
-function dbAll(s)   { return new Promise(function(r,j){var req=db.transaction(s,'readonly').objectStore(s).getAll();req.onsuccess=function(){r(req.result)};req.onerror=j}); }
-function dbIdx(s,i,v){ return new Promise(function(r,j){var req=db.transaction(s,'readonly').objectStore(s).index(i).getAll(v);req.onsuccess=function(){r(req.result)};req.onerror=j}); }
-function dbPut(s,d) { return new Promise(function(r,j){var req=db.transaction(s,'readwrite').objectStore(s).put(d);req.onsuccess=function(){r(req.result)};req.onerror=j}); }
-function dbAdd(s,d) { return new Promise(function(r,j){var req=db.transaction(s,'readwrite').objectStore(s).add(d);req.onsuccess=function(){r(req.result)};req.onerror=j}); }
-function dbDel(s,k) { return new Promise(function(r,j){var req=db.transaction(s,'readwrite').objectStore(s).delete(k);req.onsuccess=function(){r()};req.onerror=j}); }
-function dbClear(s) { return new Promise(function(r,j){var req=db.transaction(s,'readwrite').objectStore(s).clear();req.onsuccess=function(){r()};req.onerror=j}); }
-
-// ══════════════════════════════════════════════
-//  SEED DATA
-// ══════════════════════════════════════════════
-var CATS = [
-  {name:'Frutas y Verduras',emoji:'🥦',sub:'Fresco del mercado',color:'#6ea86e'},
-  {name:'Conservas y Despensa',emoji:'🥫',sub:'Latas, salsas, aceites',color:'#c8a96e'},
-  {name:'Congelados',emoji:'🧊',sub:'Pescado, carne, verdura',color:'#6e9ac8'},
-  {name:'Huevos y Lácteos',emoji:'🥛',sub:'Frescos y refrigerados',color:'#c8c06e'},
-  {name:'Charcutería',emoji:'🥩',sub:'Fiambres y embutidos',color:'#c87a6e'},
-  {name:'Carnes y Pescados',emoji:'🐟',sub:'Fresco y carnicería',color:'#c88e6e'},
-  {name:'Bebidas',emoji:'🥤',sub:'Refrescos, zumos, agua',color:'#6eb8c8'},
-  {name:'Cereales y Snacks',emoji:'🥣',sub:'Desayuno y aperitivos',color:'#a86ec8'},
-  {name:'Panadería',emoji:'🍞',sub:'Pan, picos, pita',color:'#c8a06e'},
-  {name:'Yogures y Frescos',emoji:'🫙',sub:'Yogures, mantequilla',color:'#6ec8a0'},
-  {name:'Limpieza Hogar',emoji:'🧹',sub:'Hogar y utensilios',color:'#6e8dc8'},
-  {name:'Higiene Personal',emoji:'🧴',sub:'Ducha, cuidado personal',color:'#c86eaa'},
-  {name:'Otros',emoji:'🛍️',sub:'Varios',color:'#888'}
-];
-var PRODS = [
-  ['Frutas y Verduras','Manzanas','🍎',''],['Frutas y Verduras','Tomates','🍅',''],
-  ['Frutas y Verduras','Aguacates','🥑',''],['Frutas y Verduras','Zanahorias','🥕',''],
-  ['Frutas y Verduras','Calabacín','🥒','2-3 unidades'],['Frutas y Verduras','Puerro','🌿',''],
-  ['Conservas y Despensa','Tomate rallado','🍅',''],['Conservas y Despensa','Vinagre balsámico','🫙','Tamaño pequeño'],
-  ['Conservas y Despensa','Pimientos asados','🫑','En conserva'],['Conservas y Despensa','Hummus','🫘',''],
-  ['Congelados','Atún congelado','🐟',''],['Congelados','Lomos de salmón','🐠','2 paquetes'],
-  ['Huevos y Lácteos','Huevos','🥚','36 unidades'],['Huevos y Lácteos','Queso Parmesano','🧀','Entero'],
-  ['Huevos y Lácteos','Leche semidesnatada','🥛',''],['Huevos y Lácteos','Leche de almendra','🌰','2 uds, sin azúcar'],
-  ['Charcutería','Anacardos','🥜',''],['Charcutería','Pistachos','🫘',''],
-  ['Charcutería','Jamón York 96%','🥩',''],['Charcutería','Chorizo de pavo','🍖',''],
-  ['Charcutería','Bacon','🥓',''],['Charcutería','Fuet','🌭',''],
-  ['Charcutería','Jamón serrano','🍖',''],['Charcutería','Mortadela de pavo','🥩',''],
-  ['Charcutería','Salchichas','🌭',''],['Carnes y Pescados','Carne','🥩','Pendiente decidir tipo'],
-  ['Bebidas','Coca-Cola','🥤',''],['Bebidas','Tónica','🫧',''],['Bebidas','Zumitos rosa niños','🧃',''],
-  ['Cereales y Snacks','Muesli sin azúcar','🥣',''],['Cereales y Snacks','Galletas de chocolate','🍪','Para niños'],
-  ['Panadería','Pan pita','🫓',''],['Panadería','Picos','🥖',''],['Panadería','Panes para bocadillo','🍞','6 unidades'],
-  ['Yogures y Frescos','Yogur griego ligero','🫙','Formato grande'],['Yogures y Frescos','Yogur de fresa','🍓',''],
-  ['Yogures y Frescos','Yogur de coco','🥥',''],['Yogures y Frescos','Mantequilla','🧈',''],
-  ['Limpieza Hogar','Papel higiénico','🧻',''],['Limpieza Hogar','Papel de cocina','🧻',''],
-  ['Limpieza Hogar','Limpiador WC','🚽',''],['Limpieza Hogar','Bolsas de basura moradas','🗑️',''],
-  ['Higiene Personal','Gel de ducha','🧴','']
-];
-
-async function seedData() {
-  var existing = await dbAll('categories');
-  if (existing.length > 0) return;
-  var catIds = {};
-  for (var i = 0; i < CATS.length; i++) {
-    var id = await dbAdd('categories', CATS[i]);
-    catIds[CATS[i].name] = id;
-  }
-  for (var j = 0; j < PRODS.length; j++) {
-    var p = PRODS[j];
-    await dbAdd('products', {name:p[1], emoji:p[2], notes:p[3], categoryId:catIds[p[0]], image:null});
-  }
-  var lid = await dbAdd('lists', {name:'Lista semanal', createdAt:Date.now()});
-  var prods = await dbAll('products');
-  for (var k = 0; k < PRODS.length; k++) {
-    var pr = PRODS[k];
-    var found = prods.find(function(x){ return x.name === pr[1] && x.categoryId === catIds[pr[0]]; });
-    if (found) await dbAdd('listItems', {listId:lid, productId:found.id, qty:1, unit:'', notes:found.notes, bought:false, cost:null, addedAt:Date.now()});
-  }
-}
-
-// ══════════════════════════════════════════════
-//  STATE
-// ══════════════════════════════════════════════
-var currentListId = null;
-var currentCatId = null;
-var shopTab = 'pending';
-var shopSortCat = null;
-var editingCatId = null;
-var pendingConfirmItemId = null;
-var productQty = 1;
-var productImgData = null;
-var importMode = null;
-var importMerge = false;
-var manageTab = 'cats';
-
-// ══════════════════════════════════════════════
-//  NAVIGATION
-// ══════════════════════════════════════════════
-function navigate(screen) {
-  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
-  document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('active'); });
-  document.getElementById('screen-' + screen).classList.add('active');
-  document.getElementById('nav-' + screen).classList.add('active');
-  if (screen === 'manage')   renderManage();
-  if (screen === 'shopping') renderShopping();
-  if (screen === 'lists')    renderLists();
-  if (screen === 'db')       renderDB();
-}
-
-function showProductsScreen(catId) {
-  currentCatId = catId;
-  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
-  document.getElementById('screen-products').classList.add('active');
-  renderProductsScreen();
-}
-
-// ══════════════════════════════════════════════
-//  MANAGE TABS
-// ══════════════════════════════════════════════
-function switchManageTab(tab) {
-  manageTab = tab;
-  document.getElementById('manage-tab-cats').classList.toggle('active', tab === 'cats');
-  document.getElementById('manage-tab-search').classList.toggle('active', tab === 'search');
-  document.getElementById('manage-panel-cats').style.display = tab === 'cats' ? '' : 'none';
-  document.getElementById('manage-panel-search').style.display = tab === 'search' ? '' : 'none';
-  if (tab === 'search') {
-    var inp = document.getElementById('global-search-input');
-    inp.focus();
-    renderGlobalSearch(inp.value);
-  }
-}
-
-// ══════════════════════════════════════════════
-//  MANAGE RENDER
-// ══════════════════════════════════════════════
-async function renderManage() {
-  var lists = await dbAll('lists');
-  if (!lists.length) {
-    var newId = await dbAdd('lists', {name:'Mi lista', createdAt:Date.now()});
-    currentListId = newId;
-  } else if (!currentListId) {
-    currentListId = lists[0].id;
-  }
-  var list = await dbGet('lists', currentListId);
-  document.getElementById('list-selector-label').textContent = list ? list.name : '—';
-  var items = await dbIdx('listItems', 'listId', currentListId);
-  var pending = items.filter(function(i){ return !i.bought; }).length;
-  document.getElementById('list-item-count').textContent = items.length + ' artículos';
-  var badge = document.getElementById('badge-manage');
-  if (pending > 0) { badge.style.display = ''; badge.textContent = pending; }
-  else badge.style.display = 'none';
-
-  var cats = await dbAll('categories');
-  var prods = await dbAll('products');
-  var grid = document.getElementById('categories-grid');
-  grid.innerHTML = '';
-  cats.forEach(function(cat) {
-    var catProds = prods.filter(function(p){ return p.categoryId === cat.id; });
-    var inList = items.filter(function(i){ return catProds.some(function(p){ return p.id === i.productId; }) && !i.bought; }).length;
-    var card = document.createElement('div');
-    card.className = 'cat-card';
-    card.style.setProperty('--cat-color', cat.color || '#c8a96e');
-    card.innerHTML = '<span class="cat-emoji">' + (cat.emoji||'🛒') + '</span><div class="cat-name">' + cat.name + '</div><div class="cat-sub">' + (cat.sub||'') + '</div>' + (inList > 0 ? '<div class="cat-badge">' + inList + '</div>' : '');
-    card.addEventListener('click', (function(cid){ return function(){ showProductsScreen(cid); }; })(cat.id));
-    grid.appendChild(card);
-  });
-}
-
-// ══════════════════════════════════════════════
-//  GLOBAL SEARCH
-// ══════════════════════════════════════════════
-async function renderGlobalSearch(q) {
-  var container = document.getElementById('global-search-results');
-  var term = (q || '').trim().toLowerCase();
-
-  if (!term) {
-    container.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><p>Busca en cualquier parte del nombre</p></div>';
-    return;
   }
 
-  var allProds = await dbAll('products');
-  var allCats  = await dbAll('categories');
-  var items    = await dbIdx('listItems', 'listId', currentListId);
-
-  var filtered = allProds.filter(function(p){ return p.name.toLowerCase().indexOf(term) !== -1; });
-
-  if (!filtered.length) {
-    container.innerHTML = '<div class="empty-state"><div class="empty-icon">😶</div><p>Sin resultados para <strong>' + q + '</strong></p></div>';
-    return;
+  async function buildShareText(listId) {
+    var ctx      = await getListContext(listId);
+    var list     = await DB.get('lists', listId);
+    var pending  = ctx.items.filter(function(i){ return !i.bought; });
+    var bought   = ctx.items.filter(function(i){ return  i.bought; });
+    var groups   = {};
+    pending.forEach(function(item) {
+      var prod    = ctx.prods.find(function(p){ return p.id === item.productId; });
+      var cat     = prod ? ctx.cats.find(function(c){ return c.id === prod.categoryId; }) : null;
+      var catName = cat ? (cat.emoji+' '+cat.name) : 'Otros';
+      if (!groups[catName]) groups[catName] = [];
+      groups[catName].push({item:item, prod:prod});
+    });
+    var listName = list ? list.name : 'Lista';
+    var body = '🛒 '+listName+'\n📅 '+new Date().toLocaleDateString('es-ES')+'\n';
+    body += '━━━━━━━━━━━━━━━━━━━━\n\n';
+    if (Object.keys(groups).length) {
+      Object.keys(groups).forEach(function(catName) {
+        body += catName+'\n';
+        groups[catName].forEach(function(e) {
+          var qty  = (e.item.qty>1||e.item.unit) ? ' x'+e.item.qty+(e.item.unit?' '+e.item.unit:'') : '';
+          var note = e.item.notes ? ' ('+e.item.notes+')' : '';
+          body += '  • '+(e.prod?e.prod.name:'?')+qty+note+'\n';
+        });
+        body += '\n';
+      });
+    } else { body += '(Lista vacía)\n\n'; }
+    if (bought.length) {
+      var total = bought.reduce(function(s,i){ return s+(parseFloat(i.cost)||0); }, 0);
+      body += '━━━━━━━━━━━━━━━━━━━━\n✅ Comprados ('+bought.length+'):\n';
+      bought.forEach(function(item) {
+        var prod = ctx.prods.find(function(p){ return p.id === item.productId; });
+        var cost = item.cost!=null ? ' · '+parseFloat(item.cost).toFixed(2).replace('.',',')+'€' : '';
+        body += '  ✓ '+(prod?prod.name:'?')+cost+'\n';
+      });
+      body += '\nTOTAL: '+total.toFixed(2).replace('.',',')+'€\n';
+    }
+    return { text:body, listName:listName };
   }
 
-  container.innerHTML = '';
-  filtered.forEach(function(p) {
-    var cat    = allCats.find(function(c){ return c.id === p.categoryId; });
-    var inList = items.find(function(i){ return i.productId === p.id && !i.bought; });
-    var row    = document.createElement('div');
-    row.className = 'global-result-row' + (inList ? ' in-list' : '');
+  async function importFull(json, merge) {
+    // Nuevo formato: lista completa con catálogo incluido
+    if (json.type === 'list-full') {
+      // Machacar catálogo local e insertar el del JSON
+      await DB.clear('categories');
+      await DB.clear('products');
+      for (var i = 0; i < json.categories.length; i++) await DB.put('categories', json.categories[i]);
+      for (var j = 0; j < json.products.length;   j++) await DB.put('products',   json.products[j]);
+      // Crear la lista con nombre original
+      var listData = Object.assign({}, json.list);
+      delete listData.id;
+      listData.createdAt = Date.now();
+      var newId = await DB.add('lists', listData);
+      for (var k = 0; k < json.items.length; k++) {
+        var it = Object.assign({}, json.items[k]);
+        delete it.id; it.listId = newId;
+        await DB.add('listItems', it);
+      }
+      return { type:'list-full', listId:newId };
+    }
+    // Formato legacy: solo lista sin catálogo
+    if (json.type === 'list' || (json.list && json.items)) {
+      var listData = Object.assign({}, json.list);
+      delete listData.id;
+      listData.name = listData.name + (merge ? '' : ' (importada)');
+      listData.createdAt = Date.now();
+      var newId = await DB.add('lists', listData);
+      for (var k = 0; k < json.items.length; k++) {
+        var it = Object.assign({}, json.items[k]);
+        delete it.id; it.listId = newId;
+        await DB.add('listItems', it);
+      }
+      return { type:'list', listId:newId };
+    }
+    // Backup completo
+    if (json.type === 'full') {
+      await DB.clear('categories'); await DB.clear('products');
+      await DB.clear('lists');      await DB.clear('listItems');
+      for (var i = 0; i < json.categories.length; i++) await DB.put('categories', json.categories[i]);
+      for (var j = 0; j < json.products.length;   j++) await DB.put('products',   json.products[j]);
+      for (var k = 0; k < json.lists.length;      k++) await DB.put('lists',      json.lists[k]);
+      for (var l = 0; l < json.listItems.length;  l++) await DB.put('listItems',  json.listItems[l]);
+      return { type:'full' };
+    }
+    // Catálogo legacy
+    if (json.type === 'catalogue') {
+      if (!merge) { await DB.clear('categories'); await DB.clear('products'); }
+      for (var i = 0; i < json.categories.length; i++) await DB.put('categories', json.categories[i]);
+      for (var j = 0; j < json.products.length;   j++) await DB.put('products',   json.products[j]);
+      return { type:'catalogue', cats:json.categories.length, prods:json.products.length };
+    }
+    throw new Error('Formato JSON no reconocido');
+  }
 
-    // Highlight match
-    var lname = p.name.toLowerCase();
-    var idx   = lname.indexOf(term);
-    var hl    = p.name.slice(0, idx) + '<em>' + p.name.slice(idx, idx + term.length) + '</em>' + p.name.slice(idx + term.length);
+  async function exportAllData() {
+    var cats  = await DB.all('categories');
+    var prods = await DB.all('products');
+    var lists = await DB.all('lists');
+    var items = await DB.all('listItems');
+    return { type:'full', version:1, categories:cats, products:prods, lists:lists, listItems:items };
+  }
 
-    row.innerHTML = '<div class="global-result-thumb">' + (p.image ? '<img src="' + p.image + '">' : (p.emoji||'🛒')) + '</div>' +
-      '<div class="global-result-info"><div class="global-result-name">' + hl + '</div>' +
-      '<div class="global-result-cat">' + (cat ? cat.emoji + ' ' + cat.name : '') + '</div></div>' +
-      '<div class="global-add-btn">' + (inList ? '✓' : '+') + '</div>';
+  // Exportar catálogo (categorías + productos relacionados) — sin listas
+  async function exportCatalogue() {
+    var cats  = await DB.all('categories');
+    var prods = await DB.all('products');
+    return { type:'catalogue', version:1, categories:cats, products:prods };
+  }
 
-    row.addEventListener('click', (function(prod, existing){ return function(){ openProductModal(prod, existing); }; })(p, inList));
-    container.appendChild(row);
-  });
-}
+  // Importar catálogo — reemplaza categorías y productos, mantiene listas
+  async function importCatalogue(json) {
+    if (json.type !== 'catalogue' || !json.categories || !json.products) {
+      throw new Error('Formato de catálogo inválido');
+    }
+    await DB.clear('categories');
+    await DB.clear('products');
+    for (var i = 0; i < json.categories.length; i++) await DB.put('categories', json.categories[i]);
+    for (var j = 0; j < json.products.length;   j++) await DB.put('products',   json.products[j]);
+    return { type:'catalogue', cats: json.categories.length, prods: json.products.length };
+  }
 
-document.getElementById('global-search-input').addEventListener('input', function() {
-  renderGlobalSearch(this.value);
-});
+  // Categorización por palabras clave — orden importa (más específico primero)
+  var CAT_KEYWORDS = [
+    ['Frutas y Verduras',    ['manzana','pera','naranja','limón','limon','plátano','platano','uva','fresa','melocotón','melocoton','sandía','sandia','melón','melon','kiwi','mango','piña','pina','cereza','tomate','lechuga','espinaca','zanahoria','calabacín','calabacin','cebolla','ajo','pimiento','pepino','brócoli','brocoli','coliflor','patata','papa','aguacate','alcachofa','puerro','apio','rábano','rabano','nabo','col','lombarda','berenjena','judía','judia','guisante','habas','endibia','escarola','rúcula','rucula','canónigo','canonigo','berro','perejil','cilantro','albahaca','menta','jengibre','ensalada','fruta','verdura','vegetal']],
+    ['Conservas y Despensa', ['conserva','lata','tarro','bote','aceite','vinagre','sal','azúcar','azucar','harina','arroz','pasta','espagueti','macarrón','macarron','fideos','noodle','legumbre','garbanzo','lenteja','alubia','judía seca','tomate frito','tomate rallado','tomate triturado','salsa','kétchup','ketchup','mayonesa','mostaza','miel','mermelada','confitura','cacao','chocolate negro','caldo','concentrado','atún en lata','atun en lata','sardina','mejillón','mejillon','berberecho','almeja en lata','hummus','tahini','pesto']],
+    ['Congelados',           ['congelado','helado','pizza congelada','verdura congelada','pescado congelado','carne congelada','guisante congelado','espinaca congelada','edamame','surimi','gamba congelada','croqueta','nugget','patata frita congelada']],
+    ['Huevos y Lácteos',     ['huevo','leche','queso','mantequilla','nata','crema','requesón','requeson','cuajada','kéfir','kefir','batido','lácteo','lacteo']],
+    ['Charcutería',          ['jamón','jamon','chorizo','salchichón','salchichon','fuet','lomo','mortadela','pavo fiambre','york','bacon','panceta','morcilla','salami','pepperoni','fiambre','embutido','paté','pate','foie','cecina','sobrasada','anacardo','pistacho','nuez','almendra','avellana','cacahuete','fruto seco']],
+    ['Carnes y Pescados',    ['pollo','ternera','cerdo','cordero','pavo','conejo','pato','buey','carne','filete','chuleta','costilla','muslo','pechuga','hamburguesa','salmón','salmon','merluza','bacalao','dorada','lubina','rape','boquerón','boqueron','anchoa','gamba','langostino','mejillón','mejillon','calamar','pulpo','sepia','pescado','marisco','atún fresco','atun fresco']],
+    ['Bebidas',              ['agua','refresco','zumo','jugo','cola','fanta','cerveza','vino','cava','champán','champan','whisky','ron','vodka','gin','licor','tónica','tonica','soda','bebida','infusión','infusion','té','te','café','cafe molido','café en grano']],
+    ['Cereales y Snacks',    ['cereal','muesli','granola','copos','galleta','crackers','palomita','chips','nachos','snack','barrita','chocolate con leche','chocolate blanco','gominola','caramelo','chicle']],
+    ['Panadería',            ['pan','baguette','chapata','hogaza','bollo','croissant','napolitana','brioche','pita','tortilla de trigo','wrap','tostada','biscote','pan de molde','panecillo','pico','rosquilla','muffin']],
+    ['Yogures y Frescos',    ['yogur','yogurt','yakult','postre lácteo','postre lacteo','natillas','mousse','flan','arroz con leche','petit','queso fresco','queso crema','philadelphia','mozzarella','burrata','ricotta','mascarpone','tofu','tempeh']],
+    ['Limpieza Hogar',       ['detergente','suavizante','lavavajillas','friegasuelos','fregasuelo','limpiador','desengrasante','lejía','lejia','amoniaco','quitamanchas','papel higiénico','papel higienico','papel cocina','papel de cocina','servilleta','bolsa basura','bolsa de basura','film','papel aluminio','esponja','bayeta','escoba','fregona','recogedor','ambientador']],
+    ['Higiene Personal',     ['champú','champu','gel','jabón','jabon','dentífrico','dentifrico','pasta dientes','cepillo dientes','hilo dental','enjuague','desodorante','colonia','perfume','crema','loción','locion','sérum','serum','mascarilla','maquillaje','rimel','pintalabios','pañal','panal','compresas','tampón','tampon','afeitadora','maquinilla','espuma afeitar','cuchilla']],
+    ['Otros',                []]
+  ];
 
-// ══════════════════════════════════════════════
-//  PRODUCTS SCREEN
-// ══════════════════════════════════════════════
-async function renderProductsScreen() {
-  var cat = await dbGet('categories', currentCatId);
-  document.getElementById('cat-screen-title').textContent = cat ? cat.name : '';
-  document.getElementById('cat-detail-emoji').textContent = cat ? cat.emoji : '';
-  document.getElementById('cat-detail-name').textContent  = cat ? cat.name : '';
-  document.getElementById('cat-detail-sub').textContent   = cat ? cat.sub  : '';
-  var allProds = await dbAll('products');
-  var prods    = allProds.filter(function(p){ return p.categoryId === currentCatId; });
-  var items    = await dbIdx('listItems', 'listId', currentListId);
-  document.getElementById('product-search').value = '';
-  document.getElementById('product-search').oninput = function() {
-    var q = this.value.toLowerCase();
-    renderProductsList(q ? prods.filter(function(p){ return p.name.toLowerCase().indexOf(q) !== -1; }) : prods, items);
+  function guessCategoryName(productName) {
+    var lower = productName.toLowerCase();
+    for (var i = 0; i < CAT_KEYWORDS.length - 1; i++) {
+      var catName  = CAT_KEYWORDS[i][0];
+      var keywords = CAT_KEYWORDS[i][1];
+      for (var j = 0; j < keywords.length; j++) {
+        if (lower.indexOf(keywords[j]) !== -1) return catName;
+      }
+    }
+    return 'Otros';
+  }
+
+  // Migración: asignar categorías a productos que no tienen categoryId válido
+  async function migrateProductCategories() {
+    var cats  = await DB.all('categories');
+    var prods = await DB.all('products');
+    if (!cats.length) return;
+    var catMap = {};
+    cats.forEach(function(c){ catMap[c.id] = c; });
+    // Índice por nombre de categoría
+    var catByName = {};
+    cats.forEach(function(c){ catByName[c.name] = c; });
+    var otros = cats.find(function(c){ return c.name === 'Otros'; });
+    var defaultCatId = otros ? otros.id : cats[cats.length-1].id;
+
+    for (var i = 0; i < prods.length; i++) {
+      var p = prods[i];
+      if (!p.categoryId || !catMap[p.categoryId]) {
+        // Intentar categorizar por nombre
+        var guessedName = guessCategoryName(p.name);
+        var guessedCat  = catByName[guessedName];
+        var catId = guessedCat ? guessedCat.id : defaultCatId;
+        await DB.put('products', Object.assign({}, p, {categoryId: catId}));
+      }
+    }
+  }
+
+  async function resetToFactory() {
+    await DB.clear('categories'); await DB.clear('products');
+    await DB.clear('lists');      await DB.clear('listItems');
+    await seed();
+    var lists = await DB.all('lists');
+    return lists.length ? lists[0].id : null;
+  }
+
+  // ── Pasarela JSONBin (compartir por UUID) ────────────────────────
+  // SEGURIDAD: Restringir esta key a https://arquitecturafront.github.io
+  // en JSONBin Dashboard → API Keys → Edit → Origins
+  var JSONBIN_KEY = '$2a$10$D0DD/UuAfE9YbPlhC./YNuSlMtzIhOkftqKxAOw9.9NfFpHVVnZpe';
+  var JSONBIN_URL = 'https://api.jsonbin.io/v3/b';
+
+  async function publishList(listId) {
+    var json = await exportListData(listId);
+    var body = JSON.stringify(json);
+    console.log('[JSONBin] POST', JSONBIN_URL, 'payload size:', body.length, 'bytes');
+    var resp;
+    try {
+      resp = await fetch(JSONBIN_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type':  'application/json',
+          'X-Master-Key':  JSONBIN_KEY,
+          'X-Bin-Name':    'lista-' + Date.now(),
+          'X-Bin-Private': 'true'
+        },
+        body: body
+      });
+    } catch(networkErr) {
+      console.error('[JSONBin] Network error:', networkErr);
+      throw new Error('Sin conexión o CORS bloqueado: ' + networkErr.message);
+    }
+    console.log('[JSONBin] Response status:', resp.status);
+    if (!resp.ok) {
+      var errText = await resp.text();
+      console.error('[JSONBin] Error body:', errText);
+      throw new Error('JSONBin error ' + resp.status + ': ' + errText.slice(0, 100));
+    }
+    var data = await resp.json();
+    console.log('[JSONBin] Created bin id:', data.metadata && data.metadata.id);
+    var binId = data.metadata.id;
+    return 'https://arquitecturafront.github.io/Listadelacompra/index.html?uuid=' + binId;
+  }
+
+  async function fetchByUuid(uuid) {
+    var url = JSONBIN_URL + '/' + uuid + '/latest';
+    console.log('[JSONBin] GET', url);
+    var resp;
+    try {
+      resp = await fetch(url, {
+        headers: { 'X-Master-Key': JSONBIN_KEY }
+      });
+    } catch(networkErr) {
+      console.error('[JSONBin] Network error:', networkErr);
+      throw new Error('Sin conexión o CORS bloqueado: ' + networkErr.message);
+    }
+    console.log('[JSONBin] Response status:', resp.status);
+    if (!resp.ok) {
+      var errText = await resp.text();
+      console.error('[JSONBin] Error body:', errText);
+      throw new Error('JSONBin error ' + resp.status + ': ' + errText.slice(0, 100));
+    }
+    var data = await resp.json();
+    return data.record;
+  }
+
+  // ── URL list parser (base64 legacy + uuid nuevo) ──────────────────
+  function parseUrlList() {
+    var params = new URLSearchParams(window.location.search);
+    // Nuevo formato: ?uuid=binId
+    var uuid = params.get('uuid');
+    if (uuid) return { _uuid: uuid };
+    // Formato base64 legacy: ?lista= o #lista=
+    var raw = params.get('lista');
+    if (!raw) {
+      var hash = window.location.hash;
+      if (hash && hash.indexOf('lista=') !== -1) raw = hash.split('lista=')[1];
+    }
+    if (!raw) return null;
+    try {
+      var b64 = raw.replace(/-/g, '+').replace(/_/g, '/');
+      while (b64.length % 4) b64 += '=';
+      var binary = atob(b64);
+      var bytes  = new Uint8Array(binary.length);
+      for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      return JSON.parse(new TextDecoder('utf-8').decode(bytes));
+    } catch(e) { return null; }
+  }
+
+  return {
+    seed:seed,
+    getAllData:getAllData,
+    getListContext:getListContext,
+    findOrCreateProduct:findOrCreateProduct,
+    addToList:addToList,
+    updateListItem:updateListItem,
+    markBought:markBought,
+    unmarkBought:unmarkBought,
+    finishShopping:finishShopping,
+    createList:createList,
+    deleteList:deleteList,
+    clearList:clearList,
+    saveProduct:saveProduct,
+    deleteProduct:deleteProduct,
+    saveCategory:saveCategory,
+    deleteCategory:deleteCategory,
+    importClaudeList:importClaudeList,
+    exportListData:exportListData,
+    buildShareText:buildShareText,
+    importFull:importFull,
+    exportAllData:exportAllData,
+    importCatalogue:importCatalogue,
+    migrateProductCategories:migrateProductCategories,
+    publishList:publishList,
+    fetchByUuid:fetchByUuid,
+    resetToFactory:resetToFactory,
+    parseUrlList:parseUrlList
   };
-  renderProductsList(prods, items);
-}
+})();
 
-function renderProductsList(prods, items) {
-  var list = document.getElementById('products-list');
-  list.innerHTML = '';
-  if (!prods.length) {
-    list.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><p>No hay productos</p></div>';
-    return;
+
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║  CAPA 3 — UI (renderizado)                                      ║
+// ║  Solo construye DOM a partir de datos puros.                    ║
+// ║  Sin lógica de negocio. Sin acceso directo a DB.                ║
+// ║  Para migrar a React: convertir cada función en un componente.  ║
+// ╚══════════════════════════════════════════════════════════════════╝
+var UI = (function() {
+
+  function toast(msg, type) {
+    var c = document.getElementById('toast-container');
+    var t = document.createElement('div');
+    t.className = 'toast ' + (type||'');
+    t.textContent = msg;
+    c.appendChild(t);
+    setTimeout(function(){ t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(function(){ t.remove(); }, 300); }, 2500);
   }
-  prods.forEach(function(p) {
-    var inList = items.find(function(i){ return i.productId === p.id && !i.bought; });
-    var row    = document.createElement('div');
-    row.className = 'product-row' + (inList ? ' in-list' : '');
-    row.innerHTML = '<div class="product-thumb">' + (p.image ? '<img src="' + p.image + '">' : (p.emoji||'🛒')) + '</div>' +
-      '<div class="product-info"><div class="product-name">' + p.name + '</div>' + (p.notes ? '<div class="product-note">' + p.notes + '</div>' : '') + '</div>' +
-      '<div class="product-add-btn">' + (inList ? '✓' : '+') + '</div>';
-    row.addEventListener('click', (function(prod, existing){ return function(){ openProductModal(prod, existing); }; })(p, inList));
-    list.appendChild(row);
-  });
-}
 
-// ══════════════════════════════════════════════
-//  IMAGE COMPRESSION
-// ══════════════════════════════════════════════
-function compressImage(file, callback) {
-  var reader = new FileReader();
-  reader.onload = function(ev) {
-    var image = new Image();
-    image.onload = function() {
-      var MAX = 400;
-      var w = image.width, h = image.height;
-      if (w > h) { if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; } }
-      else        { if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; } }
-      var canvas = document.createElement('canvas');
-      canvas.width = w; canvas.height = h;
-      canvas.getContext('2d').drawImage(image, 0, 0, w, h);
-      callback(canvas.toDataURL('image/jpeg', 0.72));
+  function openModal(id)  { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+  // ── Pantallas ────────────────────────────────────────────────────
+  function showScreen(name) {
+    document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+    document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('active'); });
+    var sc = document.getElementById('screen-' + name);
+    if (sc) sc.classList.add('active');
+    var nav = document.getElementById('nav-' + name);
+    if (nav) nav.classList.add('active');
+  }
+
+  function showProductsScreen() {
+    document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+    document.getElementById('screen-products').classList.add('active');
+  }
+
+  // ── Manage (pantalla principal) ──────────────────────────────────
+  function renderManageHeader(list, itemCount, pendingCount) {
+    document.getElementById('list-selector-label').textContent = list ? list.name : '—';
+    document.getElementById('list-item-count').textContent = itemCount + ' artículos';
+    var badge = document.getElementById('badge-manage');
+    if (pendingCount > 0) { badge.style.display = ''; badge.textContent = pendingCount; }
+    else badge.style.display = 'none';
+  }
+
+  function renderCategoriesGrid(cats, prods, items, onCatClick) {
+    var grid = document.getElementById('categories-grid');
+    grid.innerHTML = '';
+    cats.forEach(function(cat) {
+      var catProds = prods.filter(function(p){ return p.categoryId === cat.id; });
+      var inList   = items.filter(function(i){ return catProds.some(function(p){ return p.id === i.productId; }) && !i.bought; }).length;
+      var card     = document.createElement('div');
+      card.className = 'cat-card';
+      card.style.setProperty('--cat-color', cat.color || '#c8a96e');
+      card.innerHTML = '<span class="cat-emoji">'+(cat.emoji||'🛒')+'</span>' +
+        '<div class="cat-name">'+cat.name+'</div>' +
+        '<div class="cat-sub">'+(cat.sub||'')+'</div>' +
+        (inList > 0 ? '<div class="cat-badge">'+inList+'</div>' : '');
+      card.addEventListener('click', (function(cid){ return function(){ onCatClick(cid); }; })(cat.id));
+      grid.appendChild(card);
+    });
+  }
+
+  function renderGlobalSearch(prods, cats, items, term, onToggle) {
+    var container = document.getElementById('global-search-results');
+    if (!term) {
+      container.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><p>Busca en cualquier parte del nombre</p></div>';
+      return;
+    }
+    var t        = term.toLowerCase();
+    var filtered = prods.filter(function(p){ return p.name.toLowerCase().indexOf(t) !== -1; });
+    container.innerHTML = '';
+
+    if (!filtered.length) {
+      container.innerHTML = '<div class="empty-state"><div class="empty-icon">😶</div><p>Sin resultados para <strong>'+term+'</strong></p><p style="font-size:.78rem;color:var(--text-dim);margin-top:6px">Busca por categoría para añadir productos</p></div>';
+      return;
+    }
+
+    filtered.forEach(function(p) {
+      var cat    = cats.find(function(c){ return c.id === p.categoryId; });
+      var inList = items.find(function(i){ return i.productId === p.id && !i.bought; });
+      var row    = document.createElement('div');
+      row.className = 'global-result-row' + (inList ? ' in-list' : '');
+      var lname = p.name.toLowerCase(), idx = lname.indexOf(t);
+      var hl = p.name.slice(0,idx)+'<em>'+p.name.slice(idx,idx+t.length)+'</em>'+p.name.slice(idx+t.length);
+      row.innerHTML =
+        '<div class="global-result-thumb">'+(p.image?'<img src="'+p.image+'">':(p.emoji||'🛒'))+'</div>' +
+        '<div class="global-result-info">' +
+          '<div class="global-result-name">'+hl+'</div>' +
+          '<div class="global-result-cat">'+(cat?cat.emoji+' '+cat.name:'Sin categoría')+'</div>' +
+        '</div>' +
+        '<div class="global-add-btn">'+(inList?'✓':'+')+'</div>';
+      row.addEventListener('click', (function(prod, existing){ return function(){ onToggle(prod, existing); }; })(p, inList));
+      container.appendChild(row);
+    });
+  }
+
+  // ── Pantalla productos ───────────────────────────────────────────
+  function renderCatHeader(cat) {
+    document.getElementById('cat-screen-title').textContent = cat ? cat.name : '';
+    document.getElementById('cat-detail-emoji').textContent = cat ? cat.emoji : '';
+    document.getElementById('cat-detail-name').textContent  = cat ? cat.name  : '';
+    document.getElementById('cat-detail-sub').textContent   = cat ? cat.sub   : '';
+  }
+
+  function renderProductsList(prods, items, onProductClick) {
+    var list = document.getElementById('products-list');
+    list.innerHTML = '';
+    if (!prods.length) {
+      list.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><p>No hay productos</p></div>';
+      return;
+    }
+    prods.forEach(function(p) {
+      var inList = items.find(function(i){ return i.productId === p.id && !i.bought; });
+      var row    = document.createElement('div');
+      row.className = 'product-row' + (inList ? ' in-list' : '');
+      row.innerHTML = '<div class="product-thumb">'+(p.image?'<img src="'+p.image+'">':(p.emoji||'🛒'))+'</div>' +
+        '<div class="product-info"><div class="product-name">'+p.name+'</div>'+(p.notes?'<div class="product-note">'+p.notes+'</div>':'')+'</div>' +
+        '<div class="product-add-btn">'+(inList?'✓':'+')+'</div>';
+      row.addEventListener('click', (function(prod, existing){ return function(){ onProductClick(prod, existing); }; })(p, inList));
+      list.appendChild(row);
+    });
+  }
+
+  // ── Modal producto ───────────────────────────────────────────────
+  function openProductModal(product, existingItem, onSave) {
+    document.getElementById('modal-product-title').innerHTML = existingItem ? 'Editar en <span>lista</span>' : 'Añadir a <span>lista</span>';
+    document.getElementById('modal-product-name').value  = product.name;
+    document.getElementById('modal-product-notes').value = existingItem ? (existingItem.notes||'') : (product.notes||'');
+    document.getElementById('modal-qty-unit').value      = existingItem ? (existingItem.unit||'') : '';
+    var qty = existingItem ? existingItem.qty : 1;
+    document.getElementById('qty-display').textContent = qty;
+    document.getElementById('product-modal-emoji').textContent   = product.emoji || '🛒';
+    document.getElementById('product-modal-emoji').style.display = product.image ? 'none' : '';
+    var imgEl = document.getElementById('product-modal-img');
+    imgEl.querySelectorAll('img.mi').forEach(function(x){ x.remove(); });
+    if (product.image) {
+      var img = document.createElement('img'); img.src = product.image; img.className = 'mi';
+      img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:var(--radius)';
+      imgEl.insertBefore(img, imgEl.querySelector('.img-upload-btn'));
+    }
+    var btn = document.getElementById('modal-product-add-btn');
+    btn.textContent = existingItem ? 'Actualizar' : 'Añadir a lista';
+    btn.onclick = onSave;
+    openModal('modal-product');
+    return qty; // retornar qty inicial para que App la gestione
+  }
+
+  // ── Shopping ─────────────────────────────────────────────────────
+  function renderShoppingHeader(list, pending, bought, total) {
+    document.getElementById('count-pending').textContent = pending;
+    document.getElementById('count-bought').textContent  = bought;
+    document.getElementById('total-amount').textContent  = total.toFixed(2).replace('.',',') + ' €';
+  }
+
+  function renderSortBar(catIds, cats, activeCat, onAll, onCat) {
+    var sortBar = document.getElementById('sort-bar');
+    sortBar.innerHTML = '';
+    var all = document.createElement('div');
+    all.className = 'sort-pill' + (!activeCat ? ' active' : '');
+    all.textContent = 'Todos'; all.onclick = onAll;
+    sortBar.appendChild(all);
+    catIds.forEach(function(cid) {
+      var cat = cats.find(function(c){ return c.id === cid; });
+      if (!cat) return;
+      var pill = document.createElement('div');
+      pill.className = 'sort-pill' + (activeCat === cid ? ' active' : '');
+      pill.textContent = cat.emoji+' '+cat.name;
+      pill.onclick = (function(id){ return function(){ onCat(id); }; })(cid);
+      sortBar.appendChild(pill);
+    });
+  }
+
+  function buildShopItem(item, prod, cat, onBuy, onUnbuy) {
+    var div = document.createElement('div');
+    div.className = 'shop-item' + (item.bought ? ' bought' : '');
+    var thumb    = prod && prod.image ? '<img src="'+prod.image+'">' : (prod ? prod.emoji||'🛒' : '🛒');
+    var costHtml = item.cost!=null ? '<div class="shop-item-cost">'+parseFloat(item.cost).toFixed(2).replace('.',',')+'€</div>' : '';
+    var qtyHtml  = (item.qty>1||item.unit) ? '<div class="shop-item-qty">'+item.qty+(item.unit?' '+item.unit:'')+'</div>' : '';
+    var metaHtml = '<div class="shop-item-meta">'+(cat?'<span class="shop-item-cat">'+cat.emoji+' '+cat.name+'</span>':'')+(item.notes?'<span class="shop-item-note">'+item.notes+'</span>':'')+'</div>';
+    div.innerHTML = '<div class="shop-item-thumb">'+thumb+'</div>' +
+      '<div class="shop-item-info"><div class="shop-item-name">'+(prod?prod.name:'Producto')+'</div>'+metaHtml+costHtml+'</div>' +
+      qtyHtml+'<div class="shop-check">'+(item.bought?'✓':'')+'</div>';
+    div.addEventListener('click', (function(it){ return function(e){
+      e.stopPropagation();
+      if (!it.bought) onBuy(it);
+      else onUnbuy(it);
+    }; })(item));
+    return div;
+  }
+
+  function renderShoppingList(items, prods, cats, shopTab, sortCat, onBuy, onUnbuy) {
+    var container = document.getElementById('shopping-list');
+    container.innerHTML = '';
+    var pending = items.filter(function(i){ return !i.bought; });
+    var bought  = items.filter(function(i){ return  i.bought; });
+    var list    = shopTab === 'pending' ? pending : bought;
+    if (sortCat) list = list.filter(function(i){ var p=prods.find(function(x){ return x.id===i.productId; }); return p&&p.categoryId===sortCat; });
+    if (!list.length) {
+      container.innerHTML = '<div class="empty-state"><div class="empty-icon">'+(shopTab==='pending'?'🎉':'🛒')+'</div><p>'+(shopTab==='pending'?'¡Todo comprado!':'Aún no has marcado nada como comprado')+'</p></div>';
+      return;
+    }
+    if (shopTab === 'pending' && !sortCat) {
+      var groups = {};
+      list.forEach(function(item) {
+        var prod = prods.find(function(p){ return p.id === item.productId; });
+        var cid  = prod ? prod.categoryId : 0;
+        if (!groups[cid]) groups[cid] = [];
+        groups[cid].push({item:item, prod:prod});
+      });
+      Object.keys(groups).forEach(function(cid) {
+        var cat = cats.find(function(c){ return c.id === parseInt(cid); });
+        if (cat) {
+          var hdr = document.createElement('div');
+          hdr.className = 'category-group-header';
+          hdr.textContent = cat.emoji+'  '+cat.name;
+          container.appendChild(hdr);
+        }
+        groups[cid].forEach(function(e){
+          var cat2 = cats.find(function(c){ return c.id===(e.prod?e.prod.categoryId:-1); });
+          container.appendChild(buildShopItem(e.item, e.prod, cat2, onBuy, onUnbuy));
+        });
+      });
+    } else {
+      list.forEach(function(item) {
+        var prod = prods.find(function(p){ return p.id === item.productId; });
+        var cat  = prod ? cats.find(function(c){ return c.id === prod.categoryId; }) : null;
+        container.appendChild(buildShopItem(item, prod, cat, onBuy, onUnbuy));
+      });
+    }
+  }
+
+  // ── Modal confirm compra ─────────────────────────────────────────
+  function openConfirmModal(item, prod, cat) {
+    var thumb = document.getElementById('confirm-thumb');
+    thumb.innerHTML = prod&&prod.image ? '<img src="'+prod.image+'" style="width:100%;height:100%;object-fit:cover">' : (prod?prod.emoji||'🛒':'🛒');
+    document.getElementById('confirm-name').textContent = prod ? prod.name : 'Producto';
+    document.getElementById('confirm-cat').textContent  = cat  ? cat.emoji+' '+cat.name : '';
+    document.getElementById('confirm-qty').textContent  = (item.qty>1||item.unit) ? 'Cantidad: '+item.qty+(item.unit?' '+item.unit:'') : '';
+    document.getElementById('cost-input').value = '';
+    openModal('modal-confirm');
+    setTimeout(function(){ document.getElementById('cost-input').focus(); }, 300);
+  }
+
+  // ── Modal config listas ──────────────────────────────────────────
+  function renderConfigModal(lists, currentListId, onDelete) {
+    var sel = document.getElementById('config-list-select');
+    sel.innerHTML = '';
+    lists.forEach(function(l) {
+      var opt = document.createElement('option');
+      opt.value = l.id; opt.textContent = l.name;
+      if (l.id === currentListId) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    var cont = document.getElementById('config-lists-container');
+    cont.innerHTML = '';
+    lists.forEach(function(l) {
+      var row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)';
+      row.innerHTML = '<span style="font-size:.9rem;'+(l.id===currentListId?'color:var(--accent);font-weight:600':'color:var(--text-muted)')+'">'+
+        (l.id===currentListId?'✓ ':'')+l.name+'</span>'+
+        '<div class="db-action-btn delete" style="cursor:pointer">✕</div>';
+      row.querySelector('.delete').addEventListener('click', (function(id){ return function(){ onDelete(id); }; })(l.id));
+      cont.appendChild(row);
+    });
+  }
+
+  // ── Modal URL Claude ─────────────────────────────────────────────
+  function renderUrlListPreview(json) {
+    var html = '<strong style="color:var(--text)">'+(json.list?json.list.name:'Lista')+'</strong><br><br>';
+    var grouped = {};
+    json.items.forEach(function(item) {
+      var cat = item._catName||'Sin categoría';
+      if (!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push(item);
+    });
+    Object.keys(grouped).forEach(function(cat) {
+      html += '<span style="color:var(--accent)">'+cat+'</span><br>';
+      grouped[cat].forEach(function(item) {
+        html += '&nbsp;&nbsp;• '+item._name+(item.qty>1?' x'+item.qty:'')+(item.notes?' <em>('+item.notes+')</em>':'')+'<br>';
+      });
+      html += '<br>';
+    });
+    return html;
+  }
+
+  // ── DB screen ────────────────────────────────────────────────────
+  function renderDB(cats, prods, onEditCat, onDeleteCat, onAddCat, onEditProd, onDeleteProd, onExportBackup, onImport, onReset) {
+    var cont = document.getElementById('db-container');
+    cont.innerHTML = '';
+
+    // Backup completo
+    var io = document.createElement('div');
+    io.className = 'io-section';
+    io.innerHTML =
+      '<h3>🗄️ Backup completo</h3>' +
+      '<p style="font-size:.75rem;color:var(--text-muted);margin-bottom:10px">Incluye categorías, productos y todas las listas.</p>' +
+      '<div class="io-grid">' +
+        '<div class="io-btn export" id="exp-backup"><span class="io-icon">📤</span>Exportar backup</div>' +
+        '<div class="io-btn import" id="imp-backup"><span class="io-icon">📥</span>Importar</div>' +
+      '</div>';
+    cont.appendChild(io);
+    io.querySelector('#exp-backup').onclick = onExportBackup;
+    io.querySelector('#imp-backup').onclick = onImport;
+
+    // Categorías
+    var catSec  = createSection('🗂️ Categorías');
+    var catBody = catSec.querySelector('.db-section-body');
+    cats.forEach(function(cat) {
+      var prodCount = prods.filter(function(p){ return p.categoryId === cat.id; }).length;
+      var item = document.createElement('div'); item.className = 'db-list-item';
+      item.innerHTML =
+        '<div style="font-size:1.3rem">'+cat.emoji+'</div>' +
+        '<div class="db-item-main">' +
+          '<div class="db-item-name">'+cat.name+'</div>' +
+          '<div class="db-item-sub">'+(cat.sub||'')+' · '+prodCount+' productos</div>' +
+        '</div>' +
+        '<div class="db-item-actions">' +
+          '<div class="db-action-btn edit">✏️</div>' +
+          '<div class="db-action-btn delete">✕</div>' +
+        '</div>';
+      item.querySelector('.edit').addEventListener('click',   function(){ onEditCat(cat.id); });
+      item.querySelector('.delete').addEventListener('click', function(){ onDeleteCat(cat.id); });
+      catBody.appendChild(item);
+    });
+    var addCatBtn = document.createElement('button');
+    addCatBtn.className = 'btn btn-secondary'; addCatBtn.style.cssText = 'width:100%;margin-top:10px';
+    addCatBtn.textContent = '+ Nueva categoría'; addCatBtn.onclick = onAddCat;
+    catBody.appendChild(addCatBtn);
+    cont.appendChild(catSec);
+
+    // Productos agrupados por categoría
+    var prodSec  = createSection('🛒 Productos');
+    var prodBody = prodSec.querySelector('.db-section-body');
+    // Agrupar por categoría para mejor visualización
+    cats.forEach(function(cat) {
+      var catProds = prods.filter(function(p){ return p.categoryId === cat.id; });
+      if (!catProds.length) return;
+      var hdr = document.createElement('div');
+      hdr.style.cssText = 'padding:10px 0 4px;font-size:.68rem;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;font-weight:600;border-top:1px solid var(--border);margin-top:6px';
+      hdr.textContent = cat.emoji + ' ' + cat.name;
+      prodBody.appendChild(hdr);
+      catProds.forEach(function(prod) {
+        var item = document.createElement('div'); item.className = 'db-list-item';
+        item.innerHTML =
+          '<div style="font-size:1.2rem">'+(prod.emoji||'🛒')+'</div>' +
+          '<div class="db-item-main">' +
+            '<div class="db-item-name">'+prod.name+'</div>' +
+            (prod.notes ? '<div class="db-item-sub">'+prod.notes+'</div>' : '') +
+          '</div>' +
+          '<div class="db-item-actions">' +
+            '<div class="db-action-btn edit">✏️</div>' +
+            '<div class="db-action-btn delete">✕</div>' +
+          '</div>';
+        item.querySelector('.edit').addEventListener('click',   function(){ onEditProd(prod.id); });
+        item.querySelector('.delete').addEventListener('click', function(){ onDeleteProd(prod.id); });
+        prodBody.appendChild(item);
+      });
+    });
+    // Productos sin categoría válida
+    var orphans = prods.filter(function(p){ return !cats.find(function(c){ return c.id === p.categoryId; }); });
+    if (orphans.length) {
+      var hdr2 = document.createElement('div');
+      hdr2.style.cssText = 'padding:10px 0 4px;font-size:.68rem;color:var(--danger);text-transform:uppercase;letter-spacing:.08em;font-weight:600;border-top:1px solid var(--border);margin-top:6px';
+      hdr2.textContent = '⚠️ Sin categoría';
+      prodBody.appendChild(hdr2);
+      orphans.forEach(function(prod) {
+        var item = document.createElement('div'); item.className = 'db-list-item';
+        item.innerHTML =
+          '<div style="font-size:1.2rem">'+(prod.emoji||'🛒')+'</div>' +
+          '<div class="db-item-main"><div class="db-item-name">'+prod.name+'</div></div>' +
+          '<div class="db-item-actions"><div class="db-action-btn edit">✏️</div><div class="db-action-btn delete">✕</div></div>';
+        item.querySelector('.edit').addEventListener('click',   function(){ onEditProd(prod.id); });
+        item.querySelector('.delete').addEventListener('click', function(){ onDeleteProd(prod.id); });
+        prodBody.appendChild(item);
+      });
+    }
+    cont.appendChild(prodSec);
+
+    // Zona de riesgo
+    var danger = document.createElement('div'); danger.style.padding = '16px';
+    danger.innerHTML = '<div class="danger-zone"><h3>⚠️ Zona de riesgo</h3><button class="btn btn-danger" id="reset-btn" style="width:100%">Restablecer datos de fábrica</button></div>';
+    danger.querySelector('#reset-btn').addEventListener('click', onReset);
+    cont.appendChild(danger);
+  }
+
+  function createSection(title) {
+    var s = document.createElement('div'); s.className = 'db-section';
+    s.innerHTML = '<div class="db-section-header" onclick="this.parentElement.classList.toggle(\'open\')"><div class="db-section-title">'+title+'</div><span class="db-section-arrow">›</span></div><div class="db-section-body"></div>';
+    return s;
+  }
+
+  // ── Imagen (util) ────────────────────────────────────────────────
+  function compressImage(file, callback) {
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      var image = new Image();
+      image.onload = function() {
+        var MAX=400, w=image.width, h=image.height;
+        if (w>h){if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}}
+        else    {if(h>MAX){w=Math.round(w*MAX/h);h=MAX;}}
+        var canvas=document.createElement('canvas'); canvas.width=w; canvas.height=h;
+        canvas.getContext('2d').drawImage(image,0,0,w,h);
+        callback(canvas.toDataURL('image/jpeg',0.72));
+      };
+      image.src = ev.target.result;
     };
-    image.src = ev.target.result;
-  };
-  reader.readAsDataURL(file);
-}
+    reader.readAsDataURL(file);
+  }
 
-function applyModalImage(dataUrl) {
-  productImgData = dataUrl;
-  var imgEl = document.getElementById('product-modal-img');
-  document.getElementById('product-modal-emoji').style.display = 'none';
-  imgEl.querySelectorAll('img.mi').forEach(function(x){ x.remove(); });
-  var img = document.createElement('img');
-  img.src = dataUrl; img.className = 'mi';
-  img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:var(--radius)';
-  imgEl.insertBefore(img, imgEl.querySelector('.img-upload-btn'));
-}
-
-document.getElementById('img-upload-btn').addEventListener('click', function() {
-  document.getElementById('img-file-input').click();
-});
-document.getElementById('img-file-input').addEventListener('change', function(e) {
-  var file = e.target.files[0];
-  if (!file) return;
-  compressImage(file, applyModalImage);
-});
-
-// ══════════════════════════════════════════════
-//  PRODUCT MODAL
-// ══════════════════════════════════════════════
-function openProductModal(product, existingItem) {
-  productQty     = existingItem ? existingItem.qty : 1;
-  productImgData = product.image || null;
-
-  document.getElementById('modal-product-title').innerHTML = existingItem ? 'Editar en <span>lista</span>' : 'Añadir a <span>lista</span>';
-  document.getElementById('modal-product-name').value  = product.name;
-  document.getElementById('modal-product-notes').value = existingItem ? (existingItem.notes || '') : (product.notes || '');
-  document.getElementById('qty-display').textContent   = productQty;
-  document.getElementById('modal-qty-unit').value      = existingItem ? (existingItem.unit || '') : '';
-  document.getElementById('product-modal-emoji').textContent   = product.emoji || '🛒';
-  document.getElementById('product-modal-emoji').style.display = product.image ? 'none' : '';
-
-  var imgEl = document.getElementById('product-modal-img');
-  imgEl.querySelectorAll('img.mi').forEach(function(x){ x.remove(); });
-  if (product.image) {
-    var img = document.createElement('img');
-    img.src = product.image; img.className = 'mi';
-    img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:var(--radius)';
+  function applyModalImage(dataUrl) {
+    var imgEl = document.getElementById('product-modal-img');
+    document.getElementById('product-modal-emoji').style.display = 'none';
+    imgEl.querySelectorAll('img.mi').forEach(function(x){ x.remove(); });
+    var img = document.createElement('img'); img.src=dataUrl; img.className='mi';
+    img.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:var(--radius)';
     imgEl.insertBefore(img, imgEl.querySelector('.img-upload-btn'));
   }
 
-  var btn = document.getElementById('modal-product-add-btn');
-  btn.textContent = existingItem ? 'Actualizar' : 'Añadir a lista';
-  btn.onclick = function(){ addProductToList(product, existingItem); };
-  openModal('modal-product');
-}
+  return {
+    toast:toast, openModal:openModal, closeModal:closeModal,
+    showScreen:showScreen, showProductsScreen:showProductsScreen,
+    renderManageHeader:renderManageHeader, renderCategoriesGrid:renderCategoriesGrid,
+    renderGlobalSearch:renderGlobalSearch,
+    renderCatHeader:renderCatHeader, renderProductsList:renderProductsList,
+    openProductModal:openProductModal,
+    renderShoppingHeader:renderShoppingHeader, renderSortBar:renderSortBar,
+    renderShoppingList:renderShoppingList, openConfirmModal:openConfirmModal,
+    renderConfigModal:renderConfigModal,
+    renderUrlListPreview:renderUrlListPreview,
+    renderDB:renderDB,
+    compressImage:compressImage, applyModalImage:applyModalImage
+  };
+})();
 
-async function addProductToList(product, existingItem) {
-  var notes = document.getElementById('modal-product-notes').value;
-  var unit  = document.getElementById('modal-qty-unit').value;
 
-  if (productImgData !== product.image || notes !== product.notes) {
-    var updated = Object.assign({}, product, {image: productImgData, notes: notes});
-    await dbPut('products', updated);
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║  CAPA 4 — APP (controlador / eventos)                           ║
+// ║  Orquesta Store + UI. Gestiona estado de UI.                    ║
+// ║  Para migrar a React: convertir en hooks y event handlers.      ║
+// ╚══════════════════════════════════════════════════════════════════╝
+var App = (function() {
+
+  // ── Estado UI (no es estado de datos, es estado de pantalla) ─────
+  var state = {
+    currentListId:    null,
+    currentCatId:     null,
+    shopTab:          'pending',
+    shopSortCat:      null,
+    editingCatId:     null,
+    pendingConfirmId: null,
+    productQty:       1,
+    productImgData:   null,
+    importMode:       null,
+    importMerge:      false,
+    manageTab:        'cats',
+    pendingUrlList:   null,
+    recognition:      null,
+    isListening:      false
+  };
+
+  // ── Helpers ──────────────────────────────────────────────────────
+  function dlJSON(data, fn) {
+    var blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+    var url  = URL.createObjectURL(blob);
+    var a    = document.createElement('a'); a.href=url; a.download=fn;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+  }
+  function ds() { return new Date().toISOString().slice(0,10); }
+
+  // ── Navegación ───────────────────────────────────────────────────
+  function navigate(screen) {
+    UI.showScreen(screen);
+    if (screen === 'manage')   renderManage();
+    if (screen === 'shopping') renderShopping();
+    if (screen === 'db')       renderDB();
   }
 
-  if (existingItem) {
-    await dbPut('listItems', Object.assign({}, existingItem, {qty: productQty, unit: unit, notes: notes}));
-    showToast('Actualizado ✓', 'success');
-  } else {
-    await dbAdd('listItems', {listId:currentListId, productId:product.id, qty:productQty, unit:unit, notes:notes, bought:false, cost:null, addedAt:Date.now()});
-    showToast(product.name + ' añadido ✓', 'success');
+  function switchManageTab(tab) {
+    state.manageTab = tab;
+    document.getElementById('manage-tab-cats').classList.toggle('active', tab==='cats');
+    document.getElementById('manage-tab-search').classList.toggle('active', tab==='search');
+    document.getElementById('manage-panel-cats').style.display   = tab==='cats'   ? '' : 'none';
+    document.getElementById('manage-panel-search').style.display = tab==='search' ? '' : 'none';
+    if (tab === 'search') {
+      var inp = document.getElementById('global-search-input');
+      inp.focus();
+      renderGlobalSearch(inp.value);
+    }
   }
 
-  closeModal('modal-product');
-  // Refresh whichever panel is visible
-  if (document.getElementById('screen-products').classList.contains('active')) renderProductsScreen();
-  if (manageTab === 'search') renderGlobalSearch(document.getElementById('global-search-input').value);
-  renderManage();
-}
+  function switchShopTab(tab) {
+    state.shopTab = tab;
+    document.getElementById('tab-pending').classList.toggle('active', tab==='pending');
+    document.getElementById('tab-bought').classList.toggle('active',  tab==='bought');
+    renderShopping();
+  }
 
-document.getElementById('qty-minus').onclick = function() { if (productQty > 1) productQty--; document.getElementById('qty-display').textContent = productQty; };
-document.getElementById('qty-plus').onclick  = function() { productQty++; document.getElementById('qty-display').textContent = productQty; };
+  // ── Renderizado de pantallas ─────────────────────────────────────
+  async function renderManage() {
+    var lists = await DB.all('lists');
+    if (!lists.length) {
+      state.currentListId = await Store.createList('Mi lista');
+    } else if (!state.currentListId) {
+      state.currentListId = lists[0].id;
+    }
+    var list    = await DB.get('lists', state.currentListId);
+    var ctx     = await Store.getListContext(state.currentListId);
+    var pending = ctx.items.filter(function(i){ return !i.bought; }).length;
+    UI.renderManageHeader(list, ctx.items.length, pending);
+    UI.renderCategoriesGrid(ctx.cats, ctx.prods, ctx.items, function(catId) {
+      state.currentCatId = catId;
+      UI.showProductsScreen();
+      renderProductsScreen();
+    });
+  }
 
-document.getElementById('back-to-manage').onclick = function() {
-  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
-  document.getElementById('screen-manage').classList.add('active');
-  renderManage();
-};
+  async function renderGlobalSearch(q) {
+    var ctx = await Store.getListContext(state.currentListId);
+    UI.renderGlobalSearch(ctx.prods, ctx.cats, ctx.items, q,
+      async function(prod, existingItem) {
+        if (existingItem) {
+          // Ya está en lista → quitarlo
+          await DB.del('listItems', existingItem.id);
+          UI.toast(prod.name + ' quitado de la lista', '');
+        } else {
+          // No está → añadirlo directamente
+          await Store.addToList(state.currentListId, prod.id, 1, '', '');
+          UI.toast(prod.name + ' añadido ✓', 'success');
+        }
+        // Refrescar badges de categorías Y resultados de búsqueda
+        await renderManage();
+        await renderGlobalSearch(document.getElementById('global-search-input').value);
+      }
+    );
+  }
 
-document.getElementById('add-product-fab').onclick = function() {
-  productQty = 1; productImgData = null;
-  document.getElementById('modal-product-title').innerHTML = 'Nuevo <span>producto</span>';
-  document.getElementById('modal-product-name').value  = '';
-  document.getElementById('modal-product-notes').value = '';
-  document.getElementById('qty-display').textContent   = '1';
-  document.getElementById('modal-qty-unit').value      = '';
-  document.getElementById('product-modal-emoji').textContent   = '🛒';
-  document.getElementById('product-modal-emoji').style.display = '';
-  document.getElementById('product-modal-img').querySelectorAll('img.mi').forEach(function(x){ x.remove(); });
+  async function renderProductsScreen() {
+    var cat  = await DB.get('categories', state.currentCatId);
+    var ctx  = await Store.getListContext(state.currentListId);
+    var prods = ctx.prods.filter(function(p){ return p.categoryId === state.currentCatId; });
+    UI.renderCatHeader(cat);
+    document.getElementById('product-search').value = '';
+    document.getElementById('product-search').oninput = function() {
+      var q = this.value.toLowerCase();
+      UI.renderProductsList(
+        q ? prods.filter(function(p){ return p.name.toLowerCase().indexOf(q) !== -1; }) : prods,
+        ctx.items,
+        function(prod, existing){ openProductModal(prod, existing); }
+      );
+    };
+    UI.renderProductsList(prods, ctx.items, function(prod, existing){ openProductModal(prod, existing); });
+  }
 
-  var btn = document.getElementById('modal-product-add-btn');
-  btn.textContent = 'Crear y añadir';
-  btn.onclick = async function() {
-    var name = document.getElementById('modal-product-name').value.trim();
-    if (!name) { showToast('Escribe un nombre', 'error'); return; }
+  async function renderShopping() {
+    var lists = await DB.all('lists');
+    if (!state.currentListId && lists.length) state.currentListId = lists[0].id;
+    var list = state.currentListId ? await DB.get('lists', state.currentListId) : null;
+    var ctx  = await Store.getListContext(state.currentListId);
+    var pending = ctx.items.filter(function(i){ return !i.bought; });
+    var bought  = ctx.items.filter(function(i){ return  i.bought; });
+    var total   = bought.reduce(function(s,i){ return s+(parseFloat(i.cost)||0); }, 0);
+
+    // Actualizar selector de lista en shopping
+    document.getElementById('shop-list-selector-label').textContent = list ? list.name : '—';
+
+    UI.renderShoppingHeader(list, pending.length, bought.length, total);
+    var catIds = [];
+    pending.forEach(function(i) {
+      var prod = ctx.prods.find(function(p){ return p.id === i.productId; });
+      if (prod && catIds.indexOf(prod.categoryId) === -1) catIds.push(prod.categoryId);
+    });
+    UI.renderSortBar(catIds, ctx.cats, state.shopSortCat,
+      function(){ state.shopSortCat = null; renderShopping(); },
+      function(id){ state.shopSortCat = id; renderShopping(); }
+    );
+    UI.renderShoppingList(ctx.items, ctx.prods, ctx.cats, state.shopTab, state.shopSortCat,
+      function(item) {
+        // onBuy
+        state.pendingConfirmId = item.id;
+        var prod = ctx.prods.find(function(p){ return p.id === item.productId; });
+        var cat  = prod ? ctx.cats.find(function(c){ return c.id === prod.categoryId; }) : null;
+        UI.openConfirmModal(item, prod, cat);
+      },
+      function(item) {
+        // onUnbuy
+        Store.unmarkBought(item.id).then(function(){
+          UI.toast('Devuelto a pendientes', '');
+          renderShopping();
+        });
+      }
+    );
+  }
+
+  async function renderDB() {
+    var cats  = await DB.all('categories');
+    var prods = await DB.all('products');
+    UI.renderDB(cats, prods,
+      editCategory, deleteCategory, openNewCatModal,
+      editProduct, deleteProduct,
+      exportBackup, function(){ startImport(); },
+      resetAllData
+    );
+  }
+
+  async function exportBackup() {
+    var data = await Store.exportAllData();
+    dlJSON(data, 'backup_completo_' + ds() + '.json');
+    UI.toast('Backup exportado ✓', 'success');
+  }
+
+  function startImport() {
+    UI.openModal('modal-import-opts');
+  }
+
+  // ── Modal producto ───────────────────────────────────────────────
+  function openProductModal(product, existingItem) {
+    state.productQty    = existingItem ? existingItem.qty : 1;
+    state.productImgData = product.image || null;
+    UI.openProductModal(product, existingItem, function() {
+      saveProductToList(product, existingItem);
+    });
+  }
+
+  async function saveProductToList(product, existingItem) {
     var notes = document.getElementById('modal-product-notes').value;
     var unit  = document.getElementById('modal-qty-unit').value;
-    var pid   = await dbAdd('products', {name:name, notes:notes, emoji:'🛒', categoryId:currentCatId, image:productImgData});
-    await dbAdd('listItems', {listId:currentListId, productId:pid, qty:productQty, unit:unit, notes:notes, bought:false, cost:null, addedAt:Date.now()});
-    showToast(name + ' creado ✓', 'success');
-    closeModal('modal-product');
-    renderProductsScreen(); renderManage();
-  };
-  openModal('modal-product');
-};
 
-// ══════════════════════════════════════════════
-//  SHOPPING
-// ══════════════════════════════════════════════
-async function renderShopping() {
-  var lists = await dbAll('lists');
-  if (!currentListId && lists.length) currentListId = lists[0].id;
-  var allItems = await dbIdx('listItems', 'listId', currentListId);
-  var allProds = await dbAll('products');
-  var allCats  = await dbAll('categories');
-  var pending  = allItems.filter(function(i){ return !i.bought; });
-  var bought   = allItems.filter(function(i){ return  i.bought; });
+    // Persistir cambios en el producto si hay imagen o notas nuevas
+    if (state.productImgData !== product.image || notes !== product.notes) {
+      await Store.saveProduct(Object.assign({}, product, {image: state.productImgData, notes: notes}));
+    }
 
-  document.getElementById('count-pending').textContent = pending.length;
-  document.getElementById('count-bought').textContent  = bought.length;
-  var total = bought.reduce(function(s,i){ return s + (parseFloat(i.cost)||0); }, 0);
-  document.getElementById('total-amount').textContent = total.toFixed(2).replace('.',',') + ' €';
+    if (existingItem) {
+      await Store.updateListItem(existingItem, state.productQty, unit, notes);
+      UI.toast('Actualizado ✓', 'success');
+    } else {
+      await Store.addToList(state.currentListId, product.id, state.productQty, unit, notes);
+      UI.toast(product.name + ' añadido ✓', 'success');
+    }
 
-  // Sort pills
-  var sortBar = document.getElementById('sort-bar');
-  sortBar.innerHTML = '';
-  var allPill = document.createElement('div');
-  allPill.className = 'sort-pill' + (!shopSortCat ? ' active' : '');
-  allPill.textContent = 'Todos';
-  allPill.onclick = function() { shopSortCat = null; renderShopping(); };
-  sortBar.appendChild(allPill);
-
-  var catIds = [];
-  pending.forEach(function(i) {
-    var prod = allProds.find(function(p){ return p.id === i.productId; });
-    if (prod && catIds.indexOf(prod.categoryId) === -1) catIds.push(prod.categoryId);
-  });
-  catIds.forEach(function(cid) {
-    var cat = allCats.find(function(c){ return c.id === cid; });
-    if (!cat) return;
-    var pill = document.createElement('div');
-    pill.className = 'sort-pill' + (shopSortCat === cid ? ' active' : '');
-    pill.textContent = cat.emoji + ' ' + cat.name;
-    pill.onclick = (function(id){ return function(){ shopSortCat = id; renderShopping(); }; })(cid);
-    sortBar.appendChild(pill);
-  });
-
-  // List
-  var container = document.getElementById('shopping-list');
-  container.innerHTML = '';
-  var items = shopTab === 'pending' ? pending : bought;
-  if (shopSortCat) items = items.filter(function(i){ var p = allProds.find(function(x){ return x.id === i.productId; }); return p && p.categoryId === shopSortCat; });
-
-  if (!items.length) {
-    container.innerHTML = '<div class="empty-state"><div class="empty-icon">' + (shopTab==='pending'?'🎉':'🛒') + '</div><p>' + (shopTab==='pending'?'¡Todo comprado!':'Aún no has marcado nada como comprado') + '</p></div>';
-    return;
+    UI.closeModal('modal-product');
+    await renderManage(); // actualiza badges de categorías en background
+    if (document.getElementById('screen-products').classList.contains('active')) renderProductsScreen();
+    if (state.manageTab === 'search') {
+      // Refrescar resultados de búsqueda (actualiza ✓/+) y quedarse en búsqueda
+      await renderGlobalSearch(document.getElementById('global-search-input').value);
+      // El badge de categorías ya está actualizado en background por renderManage()
+      // No cambiamos de tab — el usuario sigue buscando
+    }
   }
 
-  if (shopTab === 'pending' && !shopSortCat) {
-    // Group by category
-    var groups = {};
-    items.forEach(function(item) {
-      var prod = allProds.find(function(p){ return p.id === item.productId; });
-      var cid  = prod ? prod.categoryId : 0;
-      if (!groups[cid]) groups[cid] = [];
-      groups[cid].push({item:item, prod:prod});
-    });
-    Object.keys(groups).forEach(function(cid) {
-      var cat = allCats.find(function(c){ return c.id === parseInt(cid); });
-      if (cat) {
-        var hdr = document.createElement('div');
-        hdr.className = 'category-group-header';
-        hdr.textContent = cat.emoji + '  ' + cat.name;
-        container.appendChild(hdr);
+  // ── Config modal (listas) ────────────────────────────────────────
+  async function openConfigModal() {
+    var lists = await DB.all('lists');
+    UI.renderConfigModal(lists, state.currentListId, async function(id) {
+      if (!confirm('¿Eliminar esta lista?')) return;
+      await Store.deleteList(id);
+      if (state.currentListId === id) {
+        var ls = await DB.all('lists');
+        state.currentListId = ls.length ? ls[0].id : null;
       }
-      groups[cid].forEach(function(e){ container.appendChild(buildShopItem(e.item, e.prod, allCats)); });
+      UI.toast('Lista eliminada', '');
+      await openConfigModal(); renderManage();
     });
-  } else {
-    items.forEach(function(item) {
-      var prod = allProds.find(function(p){ return p.id === item.productId; });
-      container.appendChild(buildShopItem(item, prod, allCats));
-    });
+    UI.openModal('modal-config');
   }
-}
 
-function switchShopTab(tab) {
-  shopTab = tab;
-  document.getElementById('tab-pending').classList.toggle('active', tab === 'pending');
-  document.getElementById('tab-bought').classList.toggle('active',  tab === 'bought');
-  renderShopping();
-}
+  // ── Exportar / Compartir ─────────────────────────────────────────
+  async function processImport(json) {
+    try {
+      var result = await Store.importFull(json, false);
+      if (result.type === 'list-full') {
+        state.currentListId = result.listId;
+        UI.toast('Lista y catálogo importados ✓', 'success');
+        await Store.migrateProductCategories();
+        renderDB(); renderManage();
+      } else if (result.type === 'list') {
+        state.currentListId = result.listId;
+        UI.toast('Lista importada ✓', 'success');
+        renderManage();
+      } else if (result.type === 'catalogue') {
+        UI.toast(result.cats + ' categorías y ' + result.prods + ' productos importados ✓', 'success');
+        renderDB(); renderManage();
+      } else if (result.type === 'full') {
+        var lists = await DB.all('lists');
+        state.currentListId = lists.length ? lists[0].id : null;
+        UI.toast('Backup restaurado ✓', 'success');
+        renderDB(); renderManage();
+      }
+    } catch(e) { UI.toast('Error: ' + e.message, 'error'); }
+  }
 
-function buildShopItem(item, prod, allCats) {
-  var cat = allCats.find(function(c){ return c.id === (prod ? prod.categoryId : -1); });
-  var div = document.createElement('div');
-  div.className = 'shop-item' + (item.bought ? ' bought' : '');
+  // ── Categorías (CRUD) ────────────────────────────────────────────
+  function openNewCatModal() {
+    state.editingCatId = null;
+    document.getElementById('modal-cat-title').innerHTML = 'Nueva <span>categoría</span>';
+    ['cat-name-input','cat-sub-input'].forEach(function(id){ document.getElementById(id).value=''; });
+    document.getElementById('cat-emoji-input').value = '';
+    document.getElementById('cat-emoji-preview').textContent = '🛒';
+    document.getElementById('cat-color-input').value = '#c8a96e';
+    document.getElementById('save-cat-btn').onclick = saveCategory;
+    UI.openModal('modal-cat');
+  }
 
-  var thumb = prod && prod.image ? '<img src="' + prod.image + '">' : (prod ? prod.emoji||'🛒' : '🛒');
-  var costHtml = item.cost != null ? '<div class="shop-item-cost">' + parseFloat(item.cost).toFixed(2).replace('.',',') + ' €</div>' : '';
-  var qtyHtml  = (item.qty > 1 || item.unit) ? '<div class="shop-item-qty">' + item.qty + (item.unit ? ' '+item.unit : '') + '</div>' : '';
-  var metaHtml = '<div class="shop-item-meta">' + (cat ? '<span class="shop-item-cat">' + cat.emoji + ' ' + cat.name + '</span>' : '') + (item.notes ? '<span class="shop-item-note">' + item.notes + '</span>' : '') + '</div>';
+  async function editCategory(id) {
+    state.editingCatId = id;
+    var cat = await DB.get('categories', id);
+    document.getElementById('modal-cat-title').innerHTML = 'Editar <span>categoría</span>';
+    document.getElementById('cat-emoji-input').value   = cat.emoji||'';
+    document.getElementById('cat-emoji-preview').textContent = cat.emoji||'🛒';
+    document.getElementById('cat-name-input').value   = cat.name||'';
+    document.getElementById('cat-sub-input').value    = cat.sub||'';
+    document.getElementById('cat-color-input').value  = cat.color||'#c8a96e';
+    document.getElementById('save-cat-btn').onclick   = saveCategory;
+    UI.openModal('modal-cat');
+  }
 
-  div.innerHTML = '<div class="shop-item-thumb">' + thumb + '</div>' +
-    '<div class="shop-item-info"><div class="shop-item-name">' + (prod ? prod.name : 'Producto') + '</div>' + metaHtml + costHtml + '</div>' +
-    qtyHtml + '<div class="shop-check">' + (item.bought ? '✓' : '') + '</div>';
+  async function saveCategory() {
+    var emoji = document.getElementById('cat-emoji-input').value.trim()||'🛒';
+    var name  = document.getElementById('cat-name-input').value.trim();
+    var sub   = document.getElementById('cat-sub-input').value.trim();
+    var color = document.getElementById('cat-color-input').value;
+    if (!name) { UI.toast('Escribe un nombre', 'error'); return; }
+    var cat = state.editingCatId ? await DB.get('categories', state.editingCatId) : {};
+    await Store.saveCategory(Object.assign({}, cat, {emoji:emoji, name:name, sub:sub, color:color}));
+    UI.toast(state.editingCatId ? 'Categoría actualizada' : 'Categoría creada', 'success');
+    UI.closeModal('modal-cat'); renderDB(); renderManage();
+  }
 
-  div.addEventListener('click', (function(it, pr, ct){
-    return function(e) {
-      e.stopPropagation();
-      if (!it.bought) openConfirmPurchase(it, pr, ct);
-      else unmarkBought(it);
+  async function deleteCategory(id) {
+    if (!confirm('¿Eliminar esta categoría y sus productos?')) return;
+    await Store.deleteCategory(id);
+    UI.toast('Categoría eliminada', ''); renderDB(); renderManage();
+  }
+
+  // ── Productos (CRUD) ─────────────────────────────────────────────
+  var editProdImgData = null; // imagen temporal para modal-edit-product
+
+  async function editProduct(id) {
+    var prod = await DB.get('products', id);
+    var cats = await DB.all('categories');
+    editProdImgData = prod.image || null;
+
+    // Imagen / emoji
+    var imgEl   = document.getElementById('edit-prod-img');
+    var emojiEl = document.getElementById('edit-prod-emoji-display');
+    imgEl.querySelectorAll('img.epi').forEach(function(x){ x.remove(); });
+    if (prod.image) {
+      emojiEl.style.display = 'none';
+      var img = document.createElement('img'); img.src = prod.image; img.className = 'epi';
+      img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:var(--radius)';
+      imgEl.insertBefore(img, imgEl.querySelector('.img-upload-btn'));
+    } else {
+      emojiEl.style.display = '';
+      emojiEl.textContent = prod.emoji || '🛒';
+    }
+
+    document.getElementById('edit-prod-emoji').value = prod.emoji || '🛒';
+    document.getElementById('edit-prod-name').value  = prod.name  || '';
+    document.getElementById('edit-prod-notes').value = prod.notes || '';
+
+    // Sync emoji input → preview
+    document.getElementById('edit-prod-emoji').oninput = function() {
+      if (!editProdImgData) emojiEl.textContent = this.value || '🛒';
     };
-  })(item, prod, cat));
 
-  return div;
-}
-
-function openConfirmPurchase(item, prod, cat) {
-  pendingConfirmItemId = item.id;
-  var thumb = document.getElementById('confirm-thumb');
-  thumb.innerHTML = prod && prod.image ? '<img src="' + prod.image + '" style="width:100%;height:100%;object-fit:cover">' : (prod ? prod.emoji||'🛒' : '🛒');
-  document.getElementById('confirm-name').textContent = prod ? prod.name : 'Producto';
-  document.getElementById('confirm-cat').textContent  = cat ? cat.emoji + ' ' + cat.name : '';
-  document.getElementById('confirm-qty').textContent  = (item.qty > 1 || item.unit) ? 'Cantidad: ' + item.qty + (item.unit ? ' '+item.unit : '') : '';
-  document.getElementById('cost-input').value = '';
-  openModal('modal-confirm');
-  setTimeout(function(){ document.getElementById('cost-input').focus(); }, 300);
-}
-
-document.getElementById('confirm-buy-btn').addEventListener('click', async function() {
-  if (pendingConfirmItemId === null) return;
-  var item = await dbGet('listItems', pendingConfirmItemId);
-  if (!item) { showToast('Error: producto no encontrado', 'error'); return; }
-  var costVal = document.getElementById('cost-input').value;
-  var cost    = costVal !== '' ? parseFloat(costVal) : null;
-  await dbPut('listItems', Object.assign({}, item, {bought:true, cost:cost, boughtAt:Date.now()}));
-  pendingConfirmItemId = null;
-  closeModal('modal-confirm');
-  showToast('Marcado como comprado ✓', 'success');
-  renderShopping();
-});
-
-document.getElementById('confirm-cancel-btn').addEventListener('click', function() {
-  pendingConfirmItemId = null;
-  closeModal('modal-confirm');
-});
-
-async function unmarkBought(item) {
-  await dbPut('listItems', Object.assign({}, item, {bought:false, cost:null}));
-  showToast('Devuelto a pendientes', '');
-  renderShopping();
-}
-
-document.getElementById('finish-btn').addEventListener('click', async function() {
-  if (!confirm('¿Finalizar la compra? Los artículos comprados se eliminarán de la lista.')) return;
-  var items  = await dbIdx('listItems', 'listId', currentListId);
-  var bought = items.filter(function(i){ return i.bought; });
-  for (var i = 0; i < bought.length; i++) await dbDel('listItems', bought[i].id);
-  var total = bought.reduce(function(s,i){ return s + (parseFloat(i.cost)||0); }, 0);
-  showToast('Compra finalizada · Total: ' + total.toFixed(2).replace('.',',') + ' €', 'success');
-  renderShopping();
-});
-
-// ── EMAIL desde Listas ──
-async function exportListById(lid) {
-  var list     = await dbGet('lists', lid);
-  var allItems = await dbIdx('listItems', 'listId', lid);
-  var allProds = await dbAll('products');
-  var allCats  = await dbAll('categories');
-  var pending  = allItems.filter(function(i){ return !i.bought; });
-  var bought   = allItems.filter(function(i){ return  i.bought; });
-
-  var groups = {};
-  pending.forEach(function(item) {
-    var prod    = allProds.find(function(p){ return p.id === item.productId; });
-    var cat     = allCats.find(function(c){ return c.id === (prod ? prod.categoryId : -1); });
-    var catName = cat ? cat.name : 'Otros';
-    if (!groups[catName]) groups[catName] = [];
-    groups[catName].push({item:item, prod:prod});
-  });
-
-  var body = 'Lista de la compra: ' + (list ? list.name : '') + '\n';
-  body += 'Fecha: ' + new Date().toLocaleDateString('es-ES') + '\n';
-  body += '--------------------------------\n\n';
-
-  if (Object.keys(groups).length) {
-    body += 'PENDIENTES (' + pending.length + '):\n\n';
-    Object.keys(groups).forEach(function(catName) {
-      body += '> ' + catName + '\n';
-      groups[catName].forEach(function(e) {
-        var qty  = (e.item.qty > 1 || e.item.unit) ? ' x' + e.item.qty + (e.item.unit ? ' '+e.item.unit : '') : '';
-        var note = e.item.notes ? ' (' + e.item.notes + ')' : '';
-        body += '  - ' + (e.prod ? e.prod.name : '?') + qty + note + '\n';
-      });
-      body += '\n';
+    var sel = document.getElementById('edit-prod-cat');
+    sel.innerHTML = '';
+    cats.forEach(function(c) {
+      var opt = document.createElement('option');
+      opt.value = c.id; opt.textContent = c.emoji + ' ' + c.name;
+      if (c.id === prod.categoryId) opt.selected = true;
+      sel.appendChild(opt);
     });
+
+    document.getElementById('save-edit-prod-btn').onclick = async function() {
+      var name = document.getElementById('edit-prod-name').value.trim();
+      if (!name) { UI.toast('Escribe un nombre', 'error'); return; }
+      await Store.saveProduct(Object.assign({}, prod, {
+        name:       name,
+        emoji:      document.getElementById('edit-prod-emoji').value.trim() || '🛒',
+        notes:      document.getElementById('edit-prod-notes').value.trim(),
+        categoryId: parseInt(document.getElementById('edit-prod-cat').value),
+        image:      editProdImgData
+      }));
+      UI.toast('Producto actualizado ✓', 'success');
+      UI.closeModal('modal-edit-product');
+      renderDB(); renderManage();
+    };
+    UI.openModal('modal-edit-product');
   }
 
-  if (bought.length) {
-    var total = bought.reduce(function(s,i){ return s + (parseFloat(i.cost)||0); }, 0);
-    body += '--------------------------------\n';
-    body += 'COMPRADOS (' + bought.length + '):\n';
-    bought.forEach(function(item) {
-      var prod = allProds.find(function(p){ return p.id === item.productId; });
-      var cost = item.cost != null ? ' - ' + parseFloat(item.cost).toFixed(2).replace('.',',') + ' EUR' : '';
-      body += '  + ' + (prod ? prod.name : '?') + cost + '\n';
-    });
-    body += '\nTOTAL: ' + total.toFixed(2).replace('.',',') + ' EUR\n';
+  async function deleteProduct(id) {
+    if (!confirm('¿Eliminar este producto?')) return;
+    await Store.deleteProduct(id);
+    UI.toast('Producto eliminado', ''); renderDB();
   }
 
-  var subject = 'Lista compra: ' + (list ? list.name : '') + ' - ' + new Date().toLocaleDateString('es-ES');
-  window.location.href = 'mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
-}
+  async function clearCurrentList() {
+    if (!confirm('¿Vaciar la lista activa?')) return;
+    await Store.clearList(state.currentListId);
+    UI.toast('Lista vaciada', ''); renderDB(); renderManage();
+  }
 
-// ── EMAIL BUTTON (shopping, eliminado - ahora en pantalla Listas) ──
+  async function resetAllData() {
+    if (!confirm('¿Borrar TODO y restaurar datos de fábrica?')) return;
+    state.currentListId = await Store.resetToFactory();
+    UI.toast('Datos restaurados ✓', 'success'); renderDB(); renderManage();
+  }
 
-// ══════════════════════════════════════════════
-//  LISTS SCREEN
-// ══════════════════════════════════════════════
-async function renderLists() {
-  var lists = await dbAll('lists');
-  var cont  = document.getElementById('lists-container');
-  cont.innerHTML = '';
-  if (!lists.length) { cont.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><p>No hay listas</p></div>'; return; }
-  for (var i = 0; i < lists.length; i++) {
-    var list  = lists[i];
-    var items = await dbIdx('listItems', 'listId', list.id);
-    var allProds = await dbAll('products');
-    var allCats  = await dbAll('categories');
-    var pending = items.filter(function(i){ return !i.bought; });
-    var bought  = items.filter(function(i){ return  i.bought; });
-
-    var wrapper = document.createElement('div');
-    wrapper.style.cssText = 'border-bottom:1px solid var(--border)';
-
-    // Cabecera de lista
-    var row = document.createElement('div');
-    row.className = 'list-item-row';
-    row.style.cursor = 'pointer';
-    var isActive = list.id === currentListId;
-    row.innerHTML = '<div class="list-item-info">' +
-      '<div class="list-item-name">' + list.name + '</div>' +
-      '<div class="list-item-meta">' + pending.length + ' pendientes · ' + bought.length + ' comprados</div>' +
-      '</div>' +
-      (isActive ? '<span class="list-active-badge">Activa</span>' : '') +
-      '<div class="db-item-actions">' +
-        (!isActive ? '<div class="db-action-btn edit" data-use="' + list.id + '">Usar</div>' : '') +
-        '<div class="db-action-btn" style="color:var(--accent);border-color:var(--accent-dim)" data-export="' + list.id + '">✉️</div>' +
-        '<div class="db-action-btn delete" data-del="' + list.id + '">✕</div>' +
-      '</div>';
-
-    // Expandir/colapsar items al pulsar en la fila
-    var itemsDiv = document.createElement('div');
-    itemsDiv.style.cssText = 'display:none;background:var(--bg);padding:0 16px 10px';
-    var arrow = document.createElement('span');
-    arrow.textContent = ' ›';
-    arrow.style.cssText = 'color:var(--accent);transition:transform .2s;display:inline-block';
-    row.querySelector('.list-item-name').appendChild(arrow);
-
-    row.addEventListener('click', function(wrapRow, wrapDiv, wrapArrow) {
-      return function(e) {
-        if (e.target.closest('[data-use],[data-del],[data-export]')) return;
-        var open = wrapDiv.style.display !== 'none';
-        wrapDiv.style.display = open ? 'none' : 'block';
-        wrapArrow.style.transform = open ? '' : 'rotate(90deg)';
-      };
-    }(row, itemsDiv, arrow));
-
-    // Contenido de items agrupados por categoría
-    if (items.length === 0) {
-      itemsDiv.innerHTML = '<div style="color:var(--text-dim);font-size:.8rem;padding:8px 0">Lista vacía</div>';
-    } else {
-      var groups = {};
-      pending.forEach(function(item) {
-        var prod = allProds.find(function(p){ return p.id === item.productId; });
-        var cat  = allCats.find(function(c){ return c.id === (prod ? prod.categoryId : -1); });
-        var key  = cat ? cat.emoji + ' ' + cat.name : 'Otros';
-        if (!groups[key]) groups[key] = [];
-        groups[key].push({item:item, prod:prod});
-      });
-      var html = '';
-      Object.keys(groups).forEach(function(catName) {
-        html += '<div style="font-size:.68rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;padding:8px 0 4px;font-weight:600">' + catName + '</div>';
-        groups[catName].forEach(function(e) {
-          var qty = (e.item.qty > 1 || e.item.unit) ? ' <span style="color:var(--accent)">x' + e.item.qty + (e.item.unit?' '+e.item.unit:'') + '</span>' : '';
-          html += '<div style="padding:4px 0;font-size:.85rem;color:var(--text-muted)">' + (e.prod ? (e.prod.emoji||'🛒')+' '+e.prod.name : '?') + qty + '</div>';
-        });
-      });
-      if (bought.length) {
-        html += '<div style="font-size:.68rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em;padding:8px 0 4px;font-weight:600">✓ Comprados</div>';
-        bought.forEach(function(item) {
-          var prod = allProds.find(function(p){ return p.id === item.productId; });
-          html += '<div style="padding:4px 0;font-size:.85rem;color:var(--text-dim);text-decoration:line-through">' + (prod ? (prod.emoji||'🛒')+' '+prod.name : '?') + '</div>';
-        });
+  // ── Voz ──────────────────────────────────────────────────────────
+  function setupVoice() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) return;
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    state.recognition = new SR(); state.recognition.lang='es-ES'; state.recognition.interimResults=false;
+    state.recognition.onresult = function(e) {
+      var text = e.results[0][0].transcript.toLowerCase();
+      UI.toast('🎤 "'+text+'"', '');
+      if (document.getElementById('screen-products').classList.contains('active')) {
+        document.getElementById('product-search').value = text;
+        document.getElementById('product-search').dispatchEvent(new Event('input'));
       }
-      itemsDiv.innerHTML = html;
-    }
-
-    if (!isActive) {
-      row.querySelector('[data-use]').addEventListener('click', (function(id){ return function(e){ e.stopPropagation(); activateList(id); }; })(list.id));
-    }
-    row.querySelector('[data-del]').addEventListener('click', (function(id){ return function(e){ e.stopPropagation(); deleteList(id); }; })(list.id));
-    row.querySelector('[data-export]').addEventListener('click', (function(lid){ return function(e){ e.stopPropagation(); exportListById(lid); }; })(list.id));
-
-    wrapper.appendChild(row);
-    wrapper.appendChild(itemsDiv);
-    cont.appendChild(wrapper);
+      if (state.manageTab === 'search') {
+        document.getElementById('global-search-input').value = text;
+        renderGlobalSearch(text);
+      }
+    };
+    state.recognition.onend = function() {
+      state.isListening = false;
+      document.querySelectorAll('.voice-btn').forEach(function(b){ b.classList.remove('listening'); });
+    };
   }
-}
 
-async function activateList(id) { currentListId = id; showToast('Lista activa cambiada', 'success'); renderLists(); renderManage(); }
-async function deleteList(id) {
-  if (!confirm('¿Eliminar esta lista?')) return;
-  var items = await dbIdx('listItems', 'listId', id);
-  for (var i = 0; i < items.length; i++) await dbDel('listItems', items[i].id);
-  await dbDel('lists', id);
-  if (currentListId === id) { var ls = await dbAll('lists'); currentListId = ls.length ? ls[0].id : null; }
-  showToast('Lista eliminada', ''); renderLists();
-}
-
-document.getElementById('btn-new-list').onclick       = function(){ openModal('modal-list'); };
-document.getElementById('btn-new-list-quick').onclick = function(){ openModal('modal-list'); };
-document.getElementById('list-selector').onclick      = function(){ navigate('lists'); };
-document.getElementById('create-list-btn').onclick = async function() {
-  var name = document.getElementById('new-list-name').value.trim();
-  if (!name) { showToast('Escribe un nombre', 'error'); return; }
-  var id = await dbAdd('lists', {name:name, createdAt:Date.now()});
-  currentListId = id;
-  document.getElementById('new-list-name').value = '';
-  closeModal('modal-list');
-  showToast('Lista "' + name + '" creada', 'success');
-  renderLists(); renderManage();
-};
-
-// ══════════════════════════════════════════════
-//  DB / GESTIÓN
-// ══════════════════════════════════════════════
-async function renderDB() {
-  var cont = document.getElementById('db-container');
-  cont.innerHTML = '';
-
-  // Export / Import
-  var io = document.createElement('div');
-  io.className = 'io-section';
-  io.innerHTML = '<h3>📤 Exportar</h3><div class="io-grid"><div class="io-btn export" id="exp-cats"><span class="io-icon">🗂️</span>Categorías</div><div class="io-btn export" id="exp-prods"><span class="io-icon">🛒</span>Productos</div><div class="io-btn export" id="exp-list"><span class="io-icon">📋</span>Lista activa</div><div class="io-btn export" id="exp-all"><span class="io-icon">💾</span>Todo</div></div><h3 style="margin-top:16px">📥 Importar</h3><div class="io-grid"><div class="io-btn import" id="imp-cats"><span class="io-icon">🗂️</span>Categorías</div><div class="io-btn import" id="imp-prods"><span class="io-icon">🛒</span>Productos</div><div class="io-btn import" id="imp-list"><span class="io-icon">📋</span>Lista</div></div>';
-  cont.appendChild(io);
-  io.querySelector('#exp-cats').onclick  = exportCategories;
-  io.querySelector('#exp-prods').onclick = exportProducts;
-  io.querySelector('#exp-list').onclick  = exportList;
-  io.querySelector('#exp-all').onclick   = exportAll;
-  io.querySelector('#imp-cats').onclick  = function(){ startImport('categories'); };
-  io.querySelector('#imp-prods').onclick = function(){ startImport('products'); };
-  io.querySelector('#imp-list').onclick  = function(){ startImport('list'); };
-
-  // Categories
-  var catSec  = createDBSection('🗂️ Categorías');
-  var cats    = await dbAll('categories');
-  var catBody = catSec.querySelector('.db-section-body');
-  cats.forEach(function(cat) {
-    var item = document.createElement('div'); item.className = 'db-list-item';
-    item.innerHTML = '<div style="font-size:1.3rem">' + cat.emoji + '</div><div class="db-item-main"><div class="db-item-name">' + cat.name + '</div><div class="db-item-sub">' + (cat.sub||'') + '</div></div><div class="db-item-actions"><div class="db-action-btn edit">✏️</div><div class="db-action-btn delete">✕</div></div>';
-    item.querySelector('.edit').addEventListener('click',   function(){ editCategory(cat.id); });
-    item.querySelector('.delete').addEventListener('click', function(){ deleteCategory(cat.id); });
-    catBody.appendChild(item);
-  });
-  var addCatBtn = document.createElement('button');
-  addCatBtn.className = 'btn btn-secondary'; addCatBtn.style.cssText = 'width:100%;margin-top:10px';
-  addCatBtn.textContent = '+ Nueva categoría'; addCatBtn.onclick = openNewCatModal;
-  catBody.appendChild(addCatBtn);
-  cont.appendChild(catSec);
-
-  // Products
-  var prodSec  = createDBSection('🛒 Productos');
-  var prods    = await dbAll('products');
-  var prodBody = prodSec.querySelector('.db-section-body');
-  prods.forEach(function(prod) {
-    var cat  = cats.find(function(c){ return c.id === prod.categoryId; });
-    var item = document.createElement('div'); item.className = 'db-list-item';
-    item.innerHTML = '<div style="font-size:1.2rem">' + (prod.emoji||'🛒') + '</div><div class="db-item-main"><div class="db-item-name">' + prod.name + '</div><div class="db-item-sub">' + (cat?cat.name:'') + (prod.notes?' · '+prod.notes:'') + '</div></div><div class="db-item-actions"><div class="db-action-btn edit">✏️</div><div class="db-action-btn delete">✕</div></div>';
-    item.querySelector('.edit').addEventListener('click',   function(){ editProduct(prod.id); });
-    item.querySelector('.delete').addEventListener('click', function(){ deleteProduct(prod.id); });
-    prodBody.appendChild(item);
-  });
-  cont.appendChild(prodSec);
-
-  // Danger
-  var danger = document.createElement('div'); danger.style.padding = '16px';
-  danger.innerHTML = '<div class="danger-zone"><h3>⚠️ Zona de riesgo</h3><button class="btn btn-danger" id="clear-list-btn" style="width:100%">Vaciar lista activa</button><button class="btn btn-secondary" id="reset-btn" style="width:100%;margin-top:8px;border-color:var(--danger);color:var(--danger)">Restablecer datos de fábrica</button></div>';
-  danger.querySelector('#clear-list-btn').addEventListener('click', clearCurrentList);
-  danger.querySelector('#reset-btn').addEventListener('click', resetAllData);
-  cont.appendChild(danger);
-}
-
-function createDBSection(title) {
-  var s = document.createElement('div'); s.className = 'db-section';
-  s.innerHTML = '<div class="db-section-header" onclick="this.parentElement.classList.toggle(\'open\')"><div class="db-section-title">' + title + '</div><span class="db-section-arrow">›</span></div><div class="db-section-body"></div>';
-  return s;
-}
-
-function openNewCatModal() {
-  editingCatId = null;
-  document.getElementById('modal-cat-title').innerHTML = 'Nueva <span>categoría</span>';
-  ['cat-emoji-input','cat-name-input','cat-sub-input'].forEach(function(id){ document.getElementById(id).value=''; });
-  document.getElementById('cat-color-input').value = '#c8a96e';
-  document.getElementById('save-cat-btn').onclick = saveCategory;
-  openModal('modal-cat');
-}
-async function editCategory(id) {
-  editingCatId = id;
-  var cat = await dbGet('categories', id);
-  document.getElementById('modal-cat-title').innerHTML = 'Editar <span>categoría</span>';
-  document.getElementById('cat-emoji-input').value = cat.emoji || '';
-  document.getElementById('cat-name-input').value  = cat.name  || '';
-  document.getElementById('cat-sub-input').value   = cat.sub   || '';
-  document.getElementById('cat-color-input').value = cat.color || '#c8a96e';
-  document.getElementById('save-cat-btn').onclick  = saveCategory;
-  openModal('modal-cat');
-}
-async function saveCategory() {
-  var emoji = document.getElementById('cat-emoji-input').value.trim() || '🛒';
-  var name  = document.getElementById('cat-name-input').value.trim();
-  var sub   = document.getElementById('cat-sub-input').value.trim();
-  var color = document.getElementById('cat-color-input').value;
-  if (!name) { showToast('Escribe un nombre', 'error'); return; }
-  if (editingCatId) {
-    var cat = await dbGet('categories', editingCatId);
-    await dbPut('categories', Object.assign({}, cat, {emoji:emoji, name:name, sub:sub, color:color}));
-  } else {
-    await dbAdd('categories', {emoji:emoji, name:name, sub:sub, color:color});
+  function toggleVoice() {
+    if (!state.recognition) { UI.toast('Voz no disponible en este navegador', 'error'); return; }
+    if (state.isListening)  { state.recognition.stop(); return; }
+    state.isListening = true;
+    document.querySelectorAll('.voice-btn').forEach(function(b){ b.classList.add('listening'); });
+    state.recognition.start();
   }
-  showToast(editingCatId ? 'Categoría actualizada' : 'Categoría creada', 'success');
-  closeModal('modal-cat'); renderDB(); renderManage();
-}
-async function deleteCategory(id) {
-  if (!confirm('¿Eliminar esta categoría y sus productos?')) return;
-  var prods = await dbAll('products');
-  var toDelete = prods.filter(function(p){ return p.categoryId === id; });
-  for (var i = 0; i < toDelete.length; i++) await dbDel('products', toDelete[i].id);
-  await dbDel('categories', id);
-  showToast('Categoría eliminada', ''); renderDB(); renderManage();
-}
-async function editProduct(id) {
-  var prod  = await dbGet('products', id);
-  var name  = prompt('Nombre:', prod.name); if (name === null) return;
-  var notes = prompt('Notas:', prod.notes || '');
-  await dbPut('products', Object.assign({}, prod, {name: name.trim()||prod.name, notes: notes||''}));
-  showToast('Producto actualizado', 'success'); renderDB();
-}
-async function deleteProduct(id) {
-  if (!confirm('¿Eliminar este producto?')) return;
-  await dbDel('products', id);
-  var items = await dbAll('listItems');
-  var related = items.filter(function(i){ return i.productId === id; });
-  for (var i = 0; i < related.length; i++) await dbDel('listItems', related[i].id);
-  showToast('Producto eliminado', ''); renderDB();
-}
-async function clearCurrentList() {
-  if (!confirm('¿Vaciar la lista activa?')) return;
-  var items = await dbIdx('listItems', 'listId', currentListId);
-  for (var i = 0; i < items.length; i++) await dbDel('listItems', items[i].id);
-  showToast('Lista vaciada', ''); renderDB(); renderManage();
-}
-async function resetAllData() {
-  if (!confirm('¿Borrar TODO y restaurar datos de fábrica?')) return;
-  await dbClear('categories'); await dbClear('products');
-  await dbClear('lists');      await dbClear('listItems');
-  currentListId = null;
-  await seedData();
-  var lists = await dbAll('lists'); currentListId = lists.length ? lists[0].id : null;
-  showToast('Datos restaurados ✓', 'success'); renderDB(); renderManage();
-}
 
-// ══════════════════════════════════════════════
-//  EXPORT / IMPORT
-// ══════════════════════════════════════════════
-function dlJSON(data, fn) {
-  var blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
-  var url  = URL.createObjectURL(blob);
-  var a    = document.createElement('a'); a.href = url; a.download = fn;
-  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-}
-function ds() { return new Date().toISOString().slice(0,10); }
+  // ── Binding de eventos ───────────────────────────────────────────
+  function bindEvents() {
 
-async function exportCategories() { var d = await dbAll('categories'); dlJSON({type:'categories',version:1,data:d}, 'categorias_'+ds()+'.json'); showToast('Categorías exportadas ✓','success'); }
-async function exportProducts()   { var d = await dbAll('products');   dlJSON({type:'products',version:1,data:d},   'productos_'+ds()+'.json');  showToast('Productos exportados ✓','success'); }
-async function exportList() {
-  var list  = await dbGet('lists', currentListId);
-  var items = await dbIdx('listItems', 'listId', currentListId);
-  dlJSON({type:'list',version:1,list:list,items:items}, 'lista_'+(list?list.name.replace(/\s/g,'_'):'compra')+'_'+ds()+'.json');
-  showToast('Lista exportada ✓','success');
-}
-async function exportAll() {
-  var cats  = await dbAll('categories'); var prods = await dbAll('products');
-  var lists = await dbAll('lists');      var items = await dbAll('listItems');
-  dlJSON({type:'full',version:1,categories:cats,products:prods,lists:lists,listItems:items}, 'compra_completo_'+ds()+'.json');
-  showToast('Exportación completa ✓','success');
-}
+    // Nav
+    document.getElementById('nav-manage').onclick   = function(){ navigate('manage'); };
+    document.getElementById('nav-shopping').onclick = function(){ navigate('shopping'); };
+    document.getElementById('nav-db').onclick       = function(){ navigate('db'); };
 
-function startImport(mode) {
-  importMode = mode;
-  var labels = {categories:'Categorías', products:'Productos', list:'Lista'};
-  document.getElementById('import-type-label').textContent = labels[mode] || mode;
-  openModal('modal-import-opts');
-}
-document.getElementById('import-merge-btn').onclick   = function(){ importMerge=true;  closeModal('modal-import-opts'); document.getElementById('import-file-input').click(); };
-document.getElementById('import-replace-btn').onclick = function(){ importMerge=false; closeModal('modal-import-opts'); document.getElementById('import-file-input').click(); };
-document.getElementById('import-file-input').addEventListener('change', async function(e) {
-  var file = e.target.files[0]; if (!file) return; e.target.value = '';
-  try { var text = await file.text(); var json = JSON.parse(text); await processImport(json); }
-  catch(err) { showToast('Error al leer el JSON: ' + err.message, 'error'); }
-});
+    // Manage tabs
+    document.getElementById('manage-tab-cats').onclick   = function(){ switchManageTab('cats'); };
+    document.getElementById('manage-tab-search').onclick = function(){ switchManageTab('search'); };
 
-async function processImport(json) {
-  if (importMode === 'categories') {
-    var cats = json.data;
-    if (!cats || !Array.isArray(cats)) { showToast('JSON de categorías inválido', 'error'); return; }
-    if (!importMerge) await dbClear('categories');
-    for (var i = 0; i < cats.length; i++) await dbPut('categories', cats[i]);
-    showToast(cats.length + ' categorías importadas ✓', 'success'); renderDB(); renderManage();
-
-  } else if (importMode === 'products') {
-    var prods = json.data;
-    if (!prods || !Array.isArray(prods)) { showToast('JSON de productos inválido', 'error'); return; }
-    if (!importMerge) await dbClear('products');
-    for (var j = 0; j < prods.length; j++) await dbPut('products', prods[j]);
-    showToast(prods.length + ' productos importados ✓', 'success'); renderDB(); renderManage();
-
-  } else if (importMode === 'list') {
-    if (!json.list || !json.items) { showToast('JSON de lista inválido', 'error'); return; }
-    var listData = Object.assign({}, json.list);
-    delete listData.id;
-    listData.name = listData.name + (importMerge ? '' : ' (importada)');
-    listData.createdAt = Date.now();
-    var newId = await dbAdd('lists', listData);
-    for (var k = 0; k < json.items.length; k++) {
-      var it = Object.assign({}, json.items[k]);
-      delete it.id; it.listId = newId;
-      await dbAdd('listItems', it);
-    }
-    currentListId = newId;
-    showToast('Lista importada ✓', 'success'); renderLists(); renderManage();
-  }
-}
-
-// ══════════════════════════════════════════════
-//  VOICE
-// ══════════════════════════════════════════════
-var recognition = null, isListening = false;
-function setupVoice() {
-  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) return;
-  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  recognition = new SR(); recognition.lang = 'es-ES'; recognition.interimResults = false;
-  recognition.onresult = function(e) {
-    var text = e.results[0][0].transcript.toLowerCase();
-    showToast('🎤 "' + text + '"', '');
-    if (document.getElementById('screen-products').classList.contains('active')) {
-      document.getElementById('product-search').value = text;
-      document.getElementById('product-search').dispatchEvent(new Event('input'));
-    }
-    if (manageTab === 'search') {
-      document.getElementById('global-search-input').value = text;
-      renderGlobalSearch(text);
-    }
-  };
-  recognition.onend = function() {
-    isListening = false;
-    document.querySelectorAll('.voice-btn').forEach(function(b){ b.classList.remove('listening'); });
-  };
-}
-function toggleVoice() {
-  if (!recognition) { showToast('Voz no disponible en este navegador', 'error'); return; }
-  if (isListening)  { recognition.stop(); return; }
-  isListening = true;
-  document.querySelectorAll('.voice-btn').forEach(function(b){ b.classList.add('listening'); });
-  recognition.start();
-}
-document.querySelectorAll('.voice-btn').forEach(function(b){ b.addEventListener('click', toggleVoice); });
-
-// ══════════════════════════════════════════════
-//  MODALS
-// ══════════════════════════════════════════════
-function openModal(id)  { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-document.querySelectorAll('.overlay').forEach(function(o) {
-  o.addEventListener('click', function(e){ if (e.target === o) closeModal(o.id); });
-});
-
-// ══════════════════════════════════════════════
-//  TOAST
-// ══════════════════════════════════════════════
-function showToast(msg, type) {
-  type = type || '';
-  var c = document.getElementById('toast-container');
-  var t = document.createElement('div'); t.className = 'toast ' + type; t.textContent = msg;
-  c.appendChild(t);
-  setTimeout(function(){ t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(function(){ t.remove(); }, 300); }, 2500);
-}
-
-// ══════════════════════════════════════════════
-//  INIT
-// ══════════════════════════════════════════════
-// ══════════════════════════════════════════════
-//  URL LIST IMPORT
-// ══════════════════════════════════════════════
-var pendingUrlList = null;
-
-function parseUrlList() {
-  // Buscar en hash (#lista=) o en query string (?lista=)
-  var raw = null;
-  var hash = window.location.hash;
-  if (hash && hash.indexOf('lista=') !== -1) {
-    raw = hash.split('lista=')[1];
-  } else {
-    var search = window.location.search;
-    if (search && search.indexOf('lista=') !== -1) {
-      raw = new URLSearchParams(search).get('lista');
-    }
-  }
-  if (!raw) return null;
-  try {
-    // Aceptar Base64 URL-safe (- y _) además del estándar (+ y /)
-    var b64 = raw.replace(/-/g, '+').replace(/_/g, '/');
-    // Añadir padding si falta
-    while (b64.length % 4) b64 += '=';
-    // decode base64 with proper UTF-8 handling
-    var binary = atob(b64);
-    var bytes = new Uint8Array(binary.length);
-    for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    var text = new TextDecoder('utf-8').decode(bytes);
-    return JSON.parse(text);
-  } catch(e) {
-    return null;
-  }
-}
-
-function buildUrlListPreview(json) {
-  if (!json || !json.items) return 'Lista sin contenido';
-  var html = '<strong style="color:var(--text)">' + (json.list ? json.list.name : 'Lista') + '</strong><br><br>';
-  var grouped = {};
-  json.items.forEach(function(item) {
-    var cat = item._catName || 'Sin categoría';
-    if (!grouped[cat]) grouped[cat] = [];
-    grouped[cat].push(item);
-  });
-  Object.keys(grouped).forEach(function(cat) {
-    html += '<span style="color:var(--accent)">' + cat + '</span><br>';
-    grouped[cat].forEach(function(item) {
-      html += '&nbsp;&nbsp;• ' + item._name + (item.qty > 1 ? ' x' + item.qty : '') + (item.notes ? ' <em>(' + item.notes + ')</em>' : '') + '<br>';
-    });
-    html += '<br>';
-  });
-  return html;
-}
-
-async function loadUrlList(json) {
-  // json.items have _name, _catName, _emoji embedded for matching
-  var allProds = await dbAll('products');
-  var allCats  = await dbAll('categories');
-
-  // Create new list
-  var listName = json.list ? json.list.name : 'Lista de Claude';
-  var listId   = await dbAdd('lists', {name: listName, createdAt: Date.now()});
-  currentListId = listId;
-
-  for (var i = 0; i < json.items.length; i++) {
-    var item = json.items[i];
-    var productId = null;
-
-    // Try to match existing product by name (fuzzy: lowercase, trim)
-    var nameLower = (item._name || '').toLowerCase().trim();
-    var found = allProds.find(function(p) {
-      return p.name.toLowerCase().trim() === nameLower;
+    // Búsqueda global
+    document.getElementById('global-search-input').addEventListener('input', function() {
+      renderGlobalSearch(this.value);
     });
 
-    if (found) {
-      productId = found.id;
-    } else {
-      // Create new product in the right category
-      var catFound = allCats.find(function(c) {
-        return c.name === item._catName;
+    // Config (listas)
+    document.getElementById('btn-config').addEventListener('click', openConfigModal);
+    document.getElementById('list-selector').addEventListener('click', openConfigModal);
+
+    document.getElementById('config-list-select').addEventListener('change', async function() {
+      state.currentListId = parseInt(this.value);
+      UI.toast('Lista activa cambiada', 'success');
+      await openConfigModal(); renderManage();
+    });
+
+    document.getElementById('config-new-list-btn').addEventListener('click', async function() {
+      var name = document.getElementById('config-new-list-name').value.trim();
+      if (!name) { UI.toast('Escribe un nombre', 'error'); return; }
+      state.currentListId = await Store.createList(name);
+      document.getElementById('config-new-list-name').value = '';
+      UI.toast('Lista "'+name+'" creada', 'success');
+      await openConfigModal(); renderManage();
+    });
+
+    document.getElementById('btn-new-list-modal').addEventListener('click', function() {
+      var form = document.getElementById('modal-new-list-form');
+      form.style.display = form.style.display === 'none' ? 'block' : 'none';
+      if (form.style.display === 'block') document.getElementById('config-new-list-name').focus();
+    });
+
+    document.getElementById('modal-new-list-cancel').addEventListener('click', function() {
+      document.getElementById('modal-new-list-form').style.display = 'none';
+      document.getElementById('config-new-list-name').value = '';
+    });
+
+    // Exportar / compartir desde config — todos los botones usan UUID vía JSONBin
+    // Descargar JSON directo (sin servidor)
+    document.getElementById('config-export-btn').addEventListener('click', async function() {
+      UI.closeModal('modal-config');
+      var json = await Store.exportListData(state.currentListId);
+      var name = (json.list ? json.list.name : 'lista').replace(/\s/g,'_');
+      dlJSON(json, 'lista_' + name + '_' + ds() + '.json');
+      UI.toast('JSON descargado ✓', 'success');
+    });
+
+    // Copiar enlace UUID
+    document.getElementById('config-link-btn').addEventListener('click', async function() {
+      UI.closeModal('modal-config');
+      UI.toast('Generando enlace...', '');
+      try {
+        var url = await Store.publishList(state.currentListId);
+        await navigator.clipboard.writeText(url);
+        UI.toast('🔗 Enlace copiado ✓', 'success');
+      } catch(e) { UI.toast('Error al generar enlace: ' + e.message, 'error'); }
+    });
+
+    // Email con enlace UUID
+    document.getElementById('config-email-btn').addEventListener('click', async function() {
+      UI.closeModal('modal-config');
+      UI.toast('Generando enlace...', '');
+      try {
+        var url  = await Store.publishList(state.currentListId);
+        var r    = await Store.buildShareText(state.currentListId);
+        var body = r.text + '\n\n👉 Pulsa para abrir en la app:\n' + url;
+        var subj = '🛒 ' + r.listName + ' - ' + new Date().toLocaleDateString('es-ES');
+        window.location.href = 'mailto:?subject=' + encodeURIComponent(subj) + '&body=' + encodeURIComponent(body);
+      } catch(e) { UI.toast('Error al generar enlace: ' + e.message, 'error'); }
+    });
+
+    // WhatsApp con enlace UUID
+    document.getElementById('config-whatsapp-btn').addEventListener('click', async function() {
+      UI.closeModal('modal-config');
+      UI.toast('Generando enlace...', '');
+      try {
+        var url = await Store.publishList(state.currentListId);
+        var r   = await Store.buildShareText(state.currentListId);
+        var msg = r.text + '\n\n👉 Pulsa para abrir en la app:\n' + url;
+        window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+      } catch(e) { UI.toast('Error al generar enlace: ' + e.message, 'error'); }
+    });
+
+    // Mail btn en shopping → abre modal de gestión de lista
+    document.getElementById('mail-list-btn').addEventListener('click', function(e) {
+      e.preventDefault();
+      openConfigModal();
+    });
+
+    // Shopping tab / finish
+    document.getElementById('tab-pending').onclick = function(){ switchShopTab('pending'); };
+    document.getElementById('tab-bought').onclick  = function(){ switchShopTab('bought'); };
+
+    document.getElementById('shop-list-selector').addEventListener('click', openConfigModal);
+    document.getElementById('btn-new-list-shop').addEventListener('click', function() {
+      openConfigModal();
+    });
+
+    document.getElementById('finish-btn').addEventListener('click', async function() {
+      if (!confirm('¿Finalizar la compra? Los artículos comprados se eliminarán de la lista.')) return;
+      var total = await Store.finishShopping(state.currentListId);
+      UI.toast('Compra finalizada · Total: ' + total.toFixed(2).replace('.',',') + ' €', 'success');
+      renderShopping();
+    });
+
+    // Confirm compra
+    document.getElementById('confirm-buy-btn').addEventListener('click', async function() {
+      if (state.pendingConfirmId === null) return;
+      var costVal = document.getElementById('cost-input').value;
+      var cost    = costVal !== '' ? parseFloat(costVal) : null;
+      await Store.markBought(state.pendingConfirmId, cost);
+      state.pendingConfirmId = null;
+      UI.closeModal('modal-confirm');
+      UI.toast('Marcado como comprado ✓', 'success');
+      renderShopping();
+    });
+
+    document.getElementById('confirm-cancel-btn').addEventListener('click', function() {
+      state.pendingConfirmId = null;
+      UI.closeModal('modal-confirm');
+    });
+
+    // Volver a manage desde productos
+    document.getElementById('back-to-manage').onclick = function() {
+      navigate('manage');
+    };
+
+    // FAB nuevo producto
+    document.getElementById('add-product-fab').onclick = function() {
+      state.productQty = 1; state.productImgData = null;
+      document.getElementById('modal-product-title').innerHTML = 'Nuevo <span>producto</span>';
+      document.getElementById('modal-product-name').value  = '';
+      document.getElementById('modal-product-notes').value = '';
+      document.getElementById('qty-display').textContent   = '1';
+      document.getElementById('modal-qty-unit').value      = '';
+      document.getElementById('product-modal-emoji').textContent   = '🛒';
+      document.getElementById('product-modal-emoji').style.display = '';
+      document.getElementById('product-modal-img').querySelectorAll('img.mi').forEach(function(x){ x.remove(); });
+      var btn = document.getElementById('modal-product-add-btn');
+      btn.textContent = 'Crear y añadir';
+      btn.onclick = async function() {
+        var name = document.getElementById('modal-product-name').value.trim();
+        if (!name) { UI.toast('Escribe un nombre', 'error'); return; }
+        var notes = document.getElementById('modal-product-notes').value;
+        var unit  = document.getElementById('modal-qty-unit').value;
+        var pid   = await DB.add('products', {name:name, notes:notes, emoji:'🛒', categoryId:state.currentCatId, image:state.productImgData});
+        await Store.addToList(state.currentListId, pid, state.productQty, unit, notes);
+        UI.toast(name + ' creado ✓', 'success');
+        UI.closeModal('modal-product');
+        renderProductsScreen(); renderManage();
+      };
+      UI.openModal('modal-product');
+    };
+
+    // Qty modal
+    document.getElementById('qty-minus').onclick = function() { if(state.productQty>1) state.productQty--; document.getElementById('qty-display').textContent=state.productQty; };
+    document.getElementById('qty-plus').onclick  = function() { state.productQty++; document.getElementById('qty-display').textContent=state.productQty; };
+
+    // Imagen
+    document.getElementById('img-upload-btn').addEventListener('click', function() {
+      document.getElementById('img-file-input').click();
+    });
+    document.getElementById('img-file-input').addEventListener('change', function(e) {
+      var file = e.target.files[0]; if (!file) return;
+      UI.compressImage(file, function(dataUrl) {
+        state.productImgData = dataUrl;
+        UI.applyModalImage(dataUrl);
       });
-      var catId = catFound ? catFound.id : (allCats.length ? allCats[allCats.length-1].id : 1);
-      productId = await dbAdd('products', {
-        name: item._name || 'Producto',
-        emoji: item._emoji || '🛒',
-        notes: item.notes || '',
-        categoryId: catId,
-        image: null
+    });
+
+    // Categoría modal
+    document.getElementById('save-cat-btn').onclick = saveCategory;
+
+    // Emoji preview en modal-cat
+    document.getElementById('cat-emoji-input').addEventListener('input', function() {
+      document.getElementById('cat-emoji-preview').textContent = this.value || '🛒';
+    });
+
+    // Imagen en modal-edit-product
+    document.getElementById('edit-prod-img-btn').addEventListener('click', function() {
+      document.getElementById('edit-prod-img-file').click();
+    });
+    document.getElementById('edit-prod-img-file').addEventListener('change', function(e) {
+      var file = e.target.files[0]; if (!file) return;
+      UI.compressImage(file, function(dataUrl) {
+        editProdImgData = dataUrl;
+        var imgEl   = document.getElementById('edit-prod-img');
+        var emojiEl = document.getElementById('edit-prod-emoji-display');
+        imgEl.querySelectorAll('img.epi').forEach(function(x){ x.remove(); });
+        emojiEl.style.display = 'none';
+        var img = document.createElement('img'); img.src = dataUrl; img.className = 'epi';
+        img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:var(--radius)';
+        imgEl.insertBefore(img, imgEl.querySelector('.img-upload-btn'));
       });
-      allProds = await dbAll('products'); // refresh
+    });
+
+    // Lista modal (modal-list, por si se abre desde algún sitio)
+    document.getElementById('create-list-btn').onclick = async function() {
+      var name = document.getElementById('new-list-name').value.trim();
+      if (!name) { UI.toast('Escribe un nombre', 'error'); return; }
+      state.currentListId = await Store.createList(name);
+      document.getElementById('new-list-name').value = '';
+      UI.closeModal('modal-list');
+      UI.toast('Lista "'+name+'" creada', 'success');
+      renderManage();
+    };
+
+    // Import (catálogo)
+    document.getElementById('import-confirm-btn').onclick = function() {
+      UI.closeModal('modal-import-opts');
+      document.getElementById('import-file-input').click();
+    };
+    document.getElementById('import-file-input').addEventListener('change', async function(e) {
+      var file = e.target.files[0]; if (!file) return; e.target.value = '';
+      try { var text = await file.text(); var json = JSON.parse(text); await processImport(json); }
+      catch(err) { UI.toast('Error al leer el JSON: '+err.message, 'error'); }
+    });
+
+
+    // URL Claude modal
+    document.getElementById('url-list-cancel-btn').addEventListener('click', function() {
+      state.pendingUrlList = null;
+      UI.closeModal('modal-url-list');
+    });
+
+    document.getElementById('url-list-confirm-btn').addEventListener('click', async function() {
+      UI.closeModal('modal-url-list');
+      if (!state.pendingUrlList) return;
+      var json = state.pendingUrlList;
+      state.pendingUrlList = null;
+      try {
+        if (json.type === 'list-full') {
+          // Formato nuevo: incluye cats + prods + lista → machacar catálogo local e importar
+          var result = await Store.importFull(json, false);
+          state.currentListId = result.listId;
+          await Store.migrateProductCategories();
+          UI.toast('Lista cargada con catálogo ✓', 'success');
+        } else {
+          // Formato legacy Claude: solo items con _name/_catName/_emoji
+          var result = await Store.importClaudeList(json);
+          state.currentListId = result.listId;
+          UI.toast('Lista "' + result.listName + '" cargada ✓', 'success');
+        }
+        renderManage();
+      } catch(e) { UI.toast('Error al cargar lista: ' + e.message, 'error'); }
+    });
+
+    // Cerrar modales al click fuera
+    document.querySelectorAll('.overlay').forEach(function(o) {
+      o.addEventListener('click', function(e){ if (e.target === o) UI.closeModal(o.id); });
+    });
+
+    // Voz
+    document.querySelectorAll('.voice-btn').forEach(function(b){ b.addEventListener('click', toggleVoice); });
+  }
+
+  // ── Init ─────────────────────────────────────────────────────────
+  async function init() {
+    await DB.open();
+    await Store.seed();
+    await Store.migrateProductCategories();
+    var lists = await DB.all('lists');
+    state.currentListId = lists.length ? lists[0].id : null;
+    setupVoice();
+    bindEvents();
+
+    var parsed = Store.parseUrlList();
+
+    if (parsed && parsed._uuid) {
+      // Nuevo formato: ?uuid=binId → descargar de JSONBin
+      UI.toast('Cargando lista...', '');
+      try {
+        var json = await Store.fetchByUuid(parsed._uuid);
+        history.replaceState(null, '', window.location.pathname);
+        if (json && json.items && json.items.length) {
+          state.pendingUrlList = json;
+          var listName = json.list ? json.list.name : 'Lista compartida';
+          document.getElementById('url-list-modal-title').innerHTML = '📋 <span>'+listName+'</span>';
+          document.getElementById('url-list-preview').innerHTML = UI.renderUrlListPreview(json);
+          UI.openModal('modal-url-list');
+        }
+      } catch(e) {
+        UI.toast('No se pudo cargar la lista: ' + e.message, 'error');
+      }
+    } else if (parsed && parsed.items && parsed.items.length) {
+      // Formato base64 legacy: ?lista= o #lista=
+      state.pendingUrlList = parsed;
+      var listName = parsed.list ? parsed.list.name : 'Lista de Claude';
+      document.getElementById('url-list-modal-title').innerHTML = '📋 <span>'+listName+'</span>';
+      document.getElementById('url-list-preview').innerHTML = UI.renderUrlListPreview(parsed);
+      UI.openModal('modal-url-list');
     }
 
-    await dbAdd('listItems', {
-      listId: listId,
-      productId: productId,
-      qty: item.qty || 1,
-      unit: item.unit || '',
-      notes: item.notes || '',
-      bought: false,
-      cost: null,
-      addedAt: Date.now()
-    });
+    renderManage();
   }
 
-  // Clear hash from URL without reload
-  history.replaceState(null, '', window.location.pathname);
-  showToast('Lista "' + listName + '" cargada ✓', 'success');
-  renderManage();
-  renderLists();
-}
+  // Exponer switchManageTab y switchShopTab al HTML (onclick inline)
+  return { init:init, switchManageTab:switchManageTab, switchShopTab:switchShopTab, navigate:navigate };
+})();
 
-document.getElementById('url-list-cancel-btn').addEventListener('click', function() {
-  pendingUrlList = null;
-  closeModal('modal-url-list');
-});
+// Arrancar
+App.init().catch(console.error);
 
-document.getElementById('url-list-confirm-btn').addEventListener('click', async function() {
-  closeModal('modal-url-list');
-  if (pendingUrlList) await loadUrlList(pendingUrlList);
-});
-
-async function init() {
-  await openDB();
-  await seedData();
-  var lists = await dbAll('lists');
-  currentListId = lists.length ? lists[0].id : null;
-  setupVoice();
-
-  // Check for URL list
-  var urlJson = parseUrlList();
-  if (urlJson && urlJson.items && urlJson.items.length) {
-    pendingUrlList = urlJson;
-    document.getElementById('url-list-preview').innerHTML = buildUrlListPreview(urlJson);
-    openModal('modal-url-list');
-  }
-
-  renderManage();
-}
-init().catch(console.error);
+// Exponer para onclick inline en HTML
+function navigate(s)          { App.navigate(s); }
+function switchManageTab(t)   { App.switchManageTab(t); }
+function switchShopTab(t)     { App.switchShopTab(t); }
+function closeModal(id)       { UI.closeModal(id); }
+function openModal(id)        { UI.openModal(id); }
 </script>
 </body>
 </html>
